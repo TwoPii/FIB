@@ -1,0 +1,75 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+library libs;
+use libs.libdeco.all;
+use work.retardos.all;
+
+entity decoT is 					-- decodificacion
+  port (INST: in STD_LOGIC_VECTOR (31 downto 0);
+  
+         mIE : out std_logic_vector (1 downto 0);
+         PBR : out std_logic;
+         liter: out std_logic_vector (1 downto 0);
+         mL1: out std_logic;
+         mL2: out std_logic;
+         mES: out std_logic_vector (1 downto 0);
+            
+         mA: out std_logic;
+         mI: out std_logic;
+
+         cntA: out std_logic_vector (5 downto 0);
+         opMD: out std_logic_vector (4 downto 0);
+         opsec: out std_logic_vector (3 downto 0);
+         
+         CoErr: out std_logic ;
+         CoMo: out std_logic                    -- cambio de modo
+
+         );
+end;
+
+-- decodificadores de senyales de encaminamiento y senyales para la alu y secuenciamiento
+-- deco: utiliza el codigo de operacion. Determina si es suficiente o es necesario una decodificacion posterior (muxEnca)
+-- muxEnca: codigo de operacion (00), campo funct (01), campo IMM(rt, 10).
+-- funct: utiliza el campo funct.
+-- IMM: utiliza el campo rt.
+
+architecture comportamiento of decoT is
+signal  Senca, Sencaco, Sencafunc, SencaIMM: std_logic_vector (26 downto 0);
+signal opalu: std_logic_vector (4 downto 0);
+signal muxEnca: std_logic_vector(1 downto 0); 
+begin
+
+coop: deco port map(INST => INST, muxEnca => muxEnca, Senca => Sencaco);
+funct: decofunc port map(INST => INST, Senca => Sencafunc);
+IMM: decoIMM port map(INST => INST, Senca => SencaIMM);
+
+-- control de la alu	
+decalu: decalu port map(funct => INST(5 downto 0), opalu => opalu, cntalu => cntA);
+
+-- seleccion de las senyales de control
+  with muxEnca  select
+      Senca <= Sencaco when "00",
+             Sencafunc when "01",
+             SencaIMM when "10",
+             (others => '0') when OTHERS;
+              
+  mIE <= Senca(26 downto 25) after retDECOT;
+  PBR <= Senca(24);
+  liter <= Senca(23 downto 22) after retDECOT; 
+  mL1 <= Senca(21) after retDECOT;
+  mL2 <= Senca(20) after retDECOT;
+  mES <= Senca(19 downto 18) after retDECOT;
+  mA <= Senca(17) after retDECOT;
+  mI <= Senca(16) after retDECOT;
+  opalu <= Senca(15 downto 11) after retDECOT;
+  opMD <= Senca(10 downto 6) after retDECOT;
+  opsec <= Senca(5 downto 2) after retDECOT;
+
+  CoErr <= Senca(1) after retDECOT;
+  CoMo <= Senca(0) after retDECOT;         
+end;
+
+
+ 

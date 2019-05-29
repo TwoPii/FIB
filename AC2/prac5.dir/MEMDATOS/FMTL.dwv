@@ -1,0 +1,62 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity FMTL is                           -- formatear salida de memoria
+generic (tam: natural:=32);
+	port(dir: in STD_LOGIC_VECTOR (tam-1 downto 0);
+		E : in STD_LOGIC_VECTOR (tam-1 downto 0);
+		cntl : in std_logic_vector (4 downto 0);
+		LD : out STD_LOGIC_VECTOR (tam-1 downto 0));
+end;
+
+architecture behave of FMTL is
+-- acceso a memoria: cntl(4)
+-- lectura / escritura: cntl(3), escritura =1
+  
+-- tamanyo del acceso a memoria				cntl(2)	   cntl(1:0)
+--											EnNt		tam 
+											-- 0 | 1	00	byte (entero | natural)
+											-- 0 | 1	01	2 bytes (entero | natural)
+											-- 0		11	4 bytes
+signal dir2bits, dir1bits: std_logic_vector (1 downto 0);
+signal t2bytes: std_logic_vector (15 downto 0);
+signal t1bytes: std_logic_vector (7 downto 0);
+
+signal sel2byte: std_logic;
+signal sel1byte: std_logic;
+signal F2byte, F1byte: std_logic_vector (tam-1 downto 0);
+
+    
+begin  
+	dir2bits <= dir(1) & '0';
+	with dir2bits select								-- lectura de 2 bytes
+		t2bytes <= E(15 downto 0) when "00",
+				E(31 downto 16) when "10",  
+				(others => 'x') when others;
+                
+	sel2byte <= ( not cntl(2)) and t2bytes(15);		-- entero/natural      
+	with sel2byte select								-- signo: t2bytes(15)
+		F2byte <= x"0000" & t2bytes when '0',
+				x"ffff" & t2bytes when '1';
+                                
+	dir1bits <= dir (1 downto 0);						-- lectura de 1 bye
+	with dir1bits select
+		t1bytes <= E(7 downto 0) when "00",
+				E(15 downto 8) when "01",
+				E(23 downto 16) when "10",
+				E(31 downto 24) when "11",  
+				(others => 'x') when others;
+                
+	sel1byte <= ( not cntl(2)) and  t1bytes(7);		-- entero/natural                    
+	with sel1byte select								-- signo: t1byte(7)
+		F1byte <= x"000000" & t1bytes when '0',
+ 				x"ffffff" & t1bytes when '1';
+                
+	with cntl(1 downto 0) select						-- seleccion en funcion
+		LD <= E after retFMTL when "11",								-- del tamanyo
+				F2byte after retFMTL when "01",
+				F1byte after retFMTL when "00",
+				(others => 'x') when others;                     
+end;

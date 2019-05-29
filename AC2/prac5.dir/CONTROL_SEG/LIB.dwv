@@ -1,0 +1,37 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.retardos.all;
+
+library LogicWorks;
+use LogicWorks.debug.all;
+
+library libs;
+use libs.libRiesgos.all;
+
+entity LIB is
+generic(tam: natural := 5);
+	port(INST: in std_logic_vector(31 downto 0);
+		rdA, rdM, rdE : in std_logic_vector(tam-1 downto 0);
+		PBRA, PBRM, PBRE : in std_logic;
+		RD: out std_logic);
+end LIB;
+
+
+architecture estructural of LIB is
+
+signal rs, rt: std_logic_vector(tam-1 downto 0);
+signal vrs, vrt : std_logic;
+
+signal rsA, rsM, rsE: std_logic;
+signal rtA, rtM, rtE: std_logic;
+			
+begin
+
+	rs <= INST(25 downto 21);
+	rt <= INST(20 downto 16);
+	
+	genvalreg: dectval port map (INST => INST, vrs => vrs, vrt => vrt); 
+	LDD0: LDD port map(rs => rs, rt => rt, vrs => vrs, vrt => vrt, rdA => rdA, rdM => rdM, rdE => rdE, PBRA => PBRA, PBRM => PBRM, PBRE => PBRE, rsA => rsA, rsM => rsM,rsE => rsE, rtA => rtA, rtM => rtM,rtE => rtE);
+	LD0: LD port map (rsA => rsA, rsM => rsM, rsE => rsE, rtA => rtA, rtM => rtM, rtE => rtE, RD => RD);
+
+end estructural;

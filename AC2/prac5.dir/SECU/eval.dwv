@@ -1,0 +1,21 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity eval is 										-- comparacion de las entradas y signo de una de ellas
+generic(tam: natural := 32);						-- evaluacion de igualdad (ig) y menor que cero
+	port(a, b: in std_logic_vector(tam-1 downto 0);
+		ig, me: out std_logic);
+end eval;
+
+-- la senyal a es la salida del puerto L1 del BR
+architecture comportamiento of eval is
+signal igual: std_logic_vector(tam-1 downto 0);
+begin
+	igual <= a xor b;
+	with igual select
+		ig <= '1' after retEVAL when x"00000000",
+			'0' after retEVAL when OTHERS;              
+	me <= a(tam-1) after retEVAL;
+end;

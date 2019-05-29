@@ -1,0 +1,210 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.campo_co.all;
+
+entity deco is 						-- decodificacion del campo codigo de operacion
+  port (INST: in STD_LOGIC_VECTOR (31 downto 0);
+        muxEnca:  out std_logic_vector(1 downto 0);                                
+         Senca: out std_logic_vector (26 downto 0));
+end;
+
+architecture comportamiento of deco is
+-- seleccion en multiplexores
+  -- mIE: registro destino
+  constant mIERD: std_logic_vector(1 downto 0) := "00";
+  constant mIERT: std_logic_vector(1 downto 0) := "01";
+  constant MIE31: std_logic_vector(1 downto 0) := "10";
+
+  -- mL1: salida pueto L1 o literal
+  constant mL1R: std_logic := '0';           -- registro
+  constant mL1I: std_logic := '1';           -- literal
+  
+  -- mL2: salida pueto L2 o literal
+  constant mL2R: std_logic := '0';
+  constant mL2I: std_logic := '1';
+
+  -- mES: actualizacion del banco de registros  
+  constant mESALU: std_logic_vector(1 downto 0) := "00";
+  constant mESMEM: std_logic_vector(1 downto 0) := "01";
+  constant mESRET: std_logic_vector(1 downto 0) := "10";
+  
+-- seleccion en formateador (FMT)
+  constant litExtSig: std_logic_vector(1 downto 0) := "00";
+  constant litExtZero: std_logic_vector(1 downto 0) := "01";
+  constant litlui: std_logic_vector(1 downto 0) := "10";
+  constant litshamt: std_logic_vector(1 downto 0) := "11";
+  
+-- permiso de escritura en el banco de registros
+   constant peEsreg: std_logic := '1';
+
+-- secuenciamiento absoluto
+--   constant secabs: std_logic := '1';
+
+-- secuenciamiento indexado
+--   constant secinde: std_logic := '1';
+
+
+-- opalu: operacion en la alu. Codificacion
+--         opalu: out STD_LOGIC_VECTOR (4 downto 0);
+         
+-- opMD: operacion en memoria. Codificacion: bit mas significativo indica acceso a memoria, 
+-- siguientes cuatro bits, menos significativos, son los cuatro bits
+-- menos significativos del codigo de operacion
+-- opMD: out std_logic_vector (4 downto 0):= '1'& opA(0) & opB
+   constant decMD: std_logic := '1';  
+       
+-- opsec: operacion de secuenciamiento. Codificacion: el bits mas significativo indica
+-- instruccion de secuenciamiento condicional, loa tres bits menos significativos son
+-- los tres bits menos significativos del codigo de operacion o los tres bits menos
+-- significativos del campo RT.
+-- opsec: out std_logic_vector (3 downto 0):= '1' & opB;si es del tipo RGIMM '1' & RTB
+   constant decs: std_logic := '1';           
+
+-- encaminamiento en la unidad de calculo
+signal   mIE :  std_logic_vector (1 downto 0);
+signal   PBR :  STD_LOGIC;
+signal   liter:  STD_LOGIC_VECTOR (1 downto 0);
+signal   mL1:  STD_LOGIC;
+signal   mL2:  STD_LOGIC;
+signal   mES:  std_logic_vector (1 downto 0);
+-- encaminamiento en la unidad de secuenciamiento                        
+signal   mA:  STD_LOGIC;
+signal   mI:  STD_LOGIC;
+-- control de la alu, memoria y secuencimaiento
+signal   opalu:  STD_LOGIC_VECTOR (4 downto 0);
+signal   opMD:  std_logic_vector (4 downto 0);
+signal   opsec:  std_logic_vector (3 downto 0);
+-- situaciones de error               
+signal   CoErr:  std_logic ;
+signal   parar:  std_logic;
+ 
+begin
+
+Pdeco:process(INST)                         -- senyal de entrada INST
+-- campos de la instruccion
+       variable opA, opB: STD_LOGIC_VECTOR (2 downto 0);
+       variable rs:  STD_LOGIC_VECTOR (4 downto 0);
+       variable rt:  STD_LOGIC_VECTOR (4 downto 0);
+               
+       variable EcoopA, EcoopB : integer;
+       variable EfunctA, EfunctB : integer;
+     
+   begin
+       opA := INST(31 downto 29);
+       opB := INST(28 downto 26);
+       rs := INST(25 downto 21);
+       rt := INST(20 downto 16);
+      
+       mIE <= "00";
+       PBR <= '0';
+       liter <= litExtSig;   
+       mL1 <= '0';
+       mL2 <= '0';
+       mES <= "00";
+            
+       mA <= '0';
+       mI <= '0';
+
+       opalu <= "00"&"000";
+       opMD <= "00000";
+       opsec <= "0000";
+
+       CoErr <= '0';
+       
+       muxEnca <= "00";
+
+-- control de encaminamiento y permisos de escritura       
+       EcoopA := conv_integer(opA);                    -- bits ALTOS del codigo de operacion
+       case EcoopA is
+           when ACOCERO =>
+               EcoopB := conv_integer(opB);
+               case EcoopB is
+                 when BtipoR => 
+                    muxEnca <= "01";
+                    
+                 when BtipoRI =>   
+                    muxEnca <= "10";
+
+                 when Bj =>                                     -- J jump
+                            mA <= '1';                              
+                 when Bjal =>                                   -- jal jump and link
+                            mIE <= "10";
+                            PBR <= peEsreg;
+                            mES <= "10";
+                            mA <= '1';
+                 when Bbeq | Bbne =>                            -- beq branch if equal
+                            opsec <= decs & opB;                -- bne branch if not equal
+                 when Bblez | Bbgtz =>                          -- blez branch if less than or equal zero
+                            opsec <= decs & opB;                -- bgtz branch if greater than zero
+                            if not(conv_integer(rt)=0) then
+                                 CoErr <= '1';
+                            end if;  
+                 when others => 
+                                CoErr <= '1'; 
+               end case;
+           when ACOUNO =>
+               EcoopB := conv_integer(opB);           
+               case EcoopB is
+                when Baddi | Baddiu  =>                           -- addi add immediate
+                           mIE <= "01";                           -- addiu add immediate unsigned
+                           PBR <= peEsreg;                            
+                           mL2 <= '1';                            
+                           opalu <= "10" & opB;                           
+                when Bslti |  Bsltiu =>                           -- slti set less than immediate
+                           mIE <= "01";                           -- sltiu set less than immediate unsigned
+                           PBR <= peEsreg;                        
+                           mL2 <= '1';                            
+                           opalu <= "10" & opB;                   -- activar bit 3 para seleccion (la codificacion de slt y sltu en func tiene el bit activdo)                          
+                when Bandi | Bori | Bxori =>                      -- andi and inmmediate
+                           mIE <= "01";                           -- ori or immediate
+                           PBR <= peEsreg;                        -- xori xor immediate
+                           liter <= litExtZero;
+                           mL2 <= '1';   
+                           opalu <= "10" & opB;
+                when Blui =>                                      -- lui load upper immediate
+                           mIE <= "01";
+                           PBR <= peEsreg;
+                           liter <= litlui;
+                           mL2 <= '1';
+                           if not(conv_integer(rs)=0) then
+                               CoErr <= '1'; 
+                           end if;
+                           opalu <= "10"&"001";                   -- operacion en la ALU (bit 4), suma sin detectar desbordamiento ( bit 2,1,0))
+                when others => 
+                            CoErr <= '1';
+               end case;
+           when ACOCUATRO =>
+               EcoopB := conv_integer(opB);
+               case EcoopB is
+                when Blb | Blh | Blw | Blbun | Bdhun =>           -- lb load byte
+                           mIE <= "01";                           -- lh load halfword
+                           PBR <= peEsreg;                        -- lw load word
+                           mL2 <= '1';                            -- lbu load byte unsigned
+                           mES <= "01";                           -- lhu load hafword unsigned
+                           opMD <= decMD & INST(29) & opB;
+                           opalu <= "10"&"001";                   -- operacion en la ALU (bit 4), suma sin detectar desbordamiento ( bit 2,1,0))
+                when others => 
+                        CoErr <= '1';
+               end case;               
+           when ACOCINCO =>
+               EcoopB := conv_integer(opB);
+               case EcoopB is
+                when Bsb | Bsh | Bsw =>                           -- sb store byte
+                          mL2 <= '1';                             -- sh store halfword
+                          opMD <= decMD & INST(29) & opB;         -- sw store word
+                          opalu <= "10"&"001";  
+                when others => 
+                       CoErr <= '1';
+               end case;                 
+           when others => 
+               CoErr <= '1';
+       end case;            
+end process Pdeco;
+        
+	parar <= '0'; 
+	Senca <= mIE & PBR & liter & mL1 & mL2 & mES & mA & mI& opalu & opMD & opsec & CoErr & parar;
+end;
+
+
+ 

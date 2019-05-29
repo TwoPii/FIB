@@ -1,0 +1,45 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity FMTE is                        -- control del acceso a memoria (lectura o escritura y acceso alineado) y formatear escritura en memoria 
+generic (tam: natural:=32);
+	port(
+		E : in STD_LOGIC_VECTOR (tam-1 downto 0);
+		cntl : in std_logic_vector (4 downto 0);
+		DF : out STD_LOGIC_VECTOR (tam-1 downto 0));
+end;
+
+architecture comportamiento of FMTE is 
+-- acceso a memoria: cntl(4)
+-- lectura / escritura: cntl(3), escritura =1
+  
+-- tamanyo del acceso a memoria				cntl(2)	cntl(1:0)
+--											   En Nt	tam 
+											-- 0 | 1	00	byte (entero | natural)
+											-- 0 | 1	01	2 bytes (entero | natural)
+											-- 0		11	4 bytes
+    
+signal B158, B2316, B3124: std_logic_vector (7 downto 0);	-- bits 15...8, 23..16, 31..24
+  
+begin
+
+	with cntl(0) select									-- escritura de 4 bytes o 1 byte
+		B158 <= E (15 downto 8) when '1',
+			E (7 downto 0) when '0';
+
+	with cntl(1) select									-- escritura de 4 bytes, 2 bytes  o 1 byte
+		B2316 <= E (23 downto 16) when '1',
+             E (7 downto 0) when '0';
+   
+	with cntl(1 downto 0) select
+		B3124 <= E (31 downto 24) when "11",
+			E (15 downto 8) when "01",
+			E (7 downto 0) when "00",
+			E (31 downto 24) when "10";
+             
+	DF <=  B3124 & B2316 & B158 & E (7 downto 0) after retFMTE;
+   
+  
+end;

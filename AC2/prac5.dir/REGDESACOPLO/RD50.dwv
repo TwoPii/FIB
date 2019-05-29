@@ -1,0 +1,22 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity RD50 is			
+ generic (tam: natural := 5);
+ 
+  port (reloj: in std_logic;
+         e: in std_logic_vector(tam-1 downto 0);
+         s: out std_logic_vector(tam-1 downto 0));
+end;
+
+architecture comportamiento of RD50 is
+  begin
+     process (reloj) begin
+       if reloj'event and reloj = '1' then
+              s <= e after retREGDES;
+       end if;
+     end process;
+end;
+

@@ -1,0 +1,18 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+entity cmp is 										-- comparacion de las entradas
+generic(tam: natural := 5);						
+	port(a, b: in std_logic_vector(tam-1 downto 0);
+		ig: out std_logic);
+end cmp;
+
+architecture comportamiento of cmp is
+signal igual: std_logic_vector(tam-1 downto 0);
+begin
+	igual <= a xor b;
+	with igual select
+		ig <= '1' when "00000",
+			'0' when OTHERS;              
+end;

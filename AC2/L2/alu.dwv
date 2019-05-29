@@ -1,0 +1,51 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.all;
+
+entity alu is
+generic (tam: natural := 32);
+	port(a, b : in std_logic_vector(tam-1 downto 0);
+		control : in std_logic_vector(1 downto 0);
+		S : out std_logic_vector (tam-1 downto 0));		
+end alu;
+
+-- Unidad aritmetico logica
+
+architecture estructural of alu is
+constant cero: std_logic := '0';
+constant uno: std_logic := '1';
+
+-- sumador
+	component sumador
+		port (a, b : in std_logic_vector (tam-1 downto 0);
+			  control : in std_logic;
+			  s : out std_logic_vector (tam-1 downto 0));
+	end component sumador;
+	
+-- modificacion de las entradas de la alu
+	component simd_ent
+		port (a, b : in std_logic_vector(tam-1 downto 0);
+			control : in std_logic_vector(1 downto 0);
+			asmd : out std_logic_vector (tam-1 downto 0);
+			bsmd : out std_logic_vector (tam-1 downto 0));
+	end component simd_ent;
+	
+-- modificacion de la salida de la alu
+	component simd_sal	
+		port (a, b, s : in std_logic_vector(tam-1 downto 0);
+			control : in std_logic_vector(1 downto 0);
+			r : out std_logic_vector (tam-1 downto 0));
+	end component simd_sal;
+
+signal aa, bb, ssumador: std_logic_vector (tam-1 downto 0);
+			
+begin
+     
+-- modificacion de las entradas
+	entrada: simd_ent port map (a=>a, b=>b, control => control, asmd=>aa, bsmd=>bb);
+-- utilizacion de la alu
+	sumador: sumador port map (a => aa, b => bb, control => control(0), S => ssumador);
+-- modificacion de las salidas	
+	salida: simd_sal port map (a => a, b =>b, s => ssumador, control => control, r => S);
+
+end estructural;

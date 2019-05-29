@@ -1,0 +1,861 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.std_logic_arith.all;
+
+use work.campo_co.all;
+use work.campo_funct.all;
+use work.campo_rt.all;
+
+use work.retardos.all;
+
+library LogicWorks;
+use LogicWorks.debug.all;
+
+entity deco_etapas_print_1_1 is -- decodificar
+  port (
+        CP: in STD_LOGIC_VECTOR (31 downto 0);
+        PBRA, PBRM, PBRE: in std_logic;
+        OPMD3A: in std_logic;
+        OPMD34M: in std_logic_vector (1 downto 0);
+        riesgoD: in std_logic;
+        mA, mI, opsec: in std_logic;
+        sigue_e0, sigue_e1, sigue_e2: in std_logic
+);
+end;
+
+architecture comportamiento of deco_etapas_print_1_1 is
+
+  constant CERO: integer := 0;
+  constant UNO: integer := 1;
+  constant DOS: integer :=2;
+  constant TRES: integer :=3;
+  constant CUATRO: integer :=4;
+  constant CINCO: integer :=5;
+  constant SEIS: integer :=6;
+  constant IETE: integer :=7;
+
+signal impri: std_logic;
+signal mA_A, mA_M, mA_E: std_logic;
+signal mI_A, mI_M, mI_E: std_logic;
+signal opsec_A, opsec_M, opsec_E: std_logic;
+
+begin
+
+-- determinar cuando se activa la impresion
+
+    impri <= sigue_e0 or sigue_e1 or sigue_e2;
+
+Pdeco_etapas_print:process(impri)
+
+variable selbase: std_logic_vector(2 downto 0);
+variable selec: std_logic_vector(6 downto 0);
+variable Eselec: integer;
+
+variable OPMD3M_E: std_logic :='0';
+
+variable secu_DL, secu_A, secu_M, secu_E: std_logic := '0';
+variable operaluA: std_logic := '0';
+variable operalu_M: std_logic := '0';
+
+variable OPMD3M, OPMD4M: std_logic;
+  begin
+
+    if impri'event and impri = '1' then 
+
+     OPMD3M := OPMD34M(0);  -- load o store
+     OPMD4M := OPMD34M(1);  -- acceso a memoria
+                         
+
+--         selbase := (PBRA or OPMD3A or mA_A or mI_A or opsec_A) & (PBRM or OPMD3M) & PBRE;
+         selbase := (PBRA or OPMD3A) & (PBRM or OPMD3M) & PBRE;
+--         secu_DL := (mA or mI or opsec) and (not (PBRDL));                            -- etapa DL. Instruccion de secuenciamiento, no almacena la direccion de retorno
+         secu_A := (mA_A or mI_A or opsec_A) and (not (PBRA));                            -- etapa A. Instruccion de secuenciamiento, no almacena la direccion de retorno
+         secu_M := (mA_M or mI_M or opsec_M) and (not (PBRM));                        -- etapa M. Instruccion de secuenciamiento, no almacena la direccion de retorno
+         secu_E := (mA_E or mI_E or opsec_E) and (not (PBRE));                        -- etapa E. Instruccion de secuenciamiento, no almacena la direccion de retorno
+         operalu_M := (( not(mA_M or mI_M or opsec_M)) and (not(OPMD4M))) and PBRM;     -- etapa M. Instruccion de calculo. 
+         selec:= OPMD3M_E & operalu_M & secu_M & secu_E & selbase;
+
+-- writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| -     ", "| nop  ", "| nop  ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                        
+-- writeln (" ");
+-- writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| nop  ", "| nop  ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                        
+-- writeln (" ");
+-- writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R     ", "| R       ", "| R       ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                        
+-- writeln (" ");
+-- writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R     ", "| R       ", "| R       ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                        
+-- writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A    ", "| M     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                        
+-- writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A    ", "| M     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                        
+
+
+
+         
+       Eselec := conv_integer(selec);
+       case Eselec is
+--             when "0 00 000" =>  nop nop nop
+             when CERO =>  
+                    if (riesgoD = '1') then
+                      writeln (" case 0, ERROR: comprobar la logica de deteccion de riesgos de datos "); 
+                    else
+                      if (secu_A = '1') then   
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| nop  ", "| nop   ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                        
+                      else   
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| nop  ", "| nop   ","   ", "     R_dat: ",riesgoD,    "   t: ", now());
+                      end if;
+                    end if;
+--             when "0 00 001" => nop nop E
+             when 1 =>           
+                    if (riesgoD = '1') then
+                      if (secu_A = '1') then   
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| -     ", "| nop  ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());       
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| nop  ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());       
+                      end if; 
+
+                    else      
+                      if (secu_A = '1') then   
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| nop  ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());       
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| nop  ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());       
+                      end if; 
+                    end if;
+--             when "0 00 010" => nop M nop
+             when 2 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if (secu_A = '1') then
+                          writeln (" case 2, ERROR: instrucciones de secuenciamiento en las etapas ALU y Mem ");              
+                        else   
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if (secu_A = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| -     ", "| M     ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());   
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| M     ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    else   
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if (secu_A = '1') then
+                          writeln (" case 2, ERROR: instrucciones de secuenciamiento en las etapas ALU y Mem ");              
+                        else   
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if (secu_A = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| M     ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());   
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| M     ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    end if;
+--             when "0 00 011" => nop M E
+             when 3 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if (secu_A = '1') then
+                          writeln (" case 3, ERROR: instrucciones de secuenciamiento en las etapas ALU y Mem ");              
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if (secu_A = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| -     ", "| M     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| M     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if; 
+                      end if;
+                    else   
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if (secu_A = '1') then
+                          writeln (" case 3, ERROR: instrucciones de secuenciamiento en las etapas ALU y Mem ");              
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if (secu_A = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| M     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| M     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if; 
+                      end if;
+                    end if;
+--             when "0 00 100" => A nop nop
+             when 4 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R       ", "| nop  ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| nop  ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());
+                      end if;
+                    else
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R       ", "| nop  ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| nop  ", "| nop  ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+--             when "0 00 101" => A nop E
+             when 5 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R       ", "| nop  ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now()); 
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| nop  ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());
+                      end if;
+                    else
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R       ", "| nop  ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| nop  ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+--             when "0 00 110" => A M nop
+             when 6 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("case 6, ERROR:  instrucciones de secuencimaineto en ALU y Memoria ");       
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R       ", "| M     ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| M     ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    else
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("case 6, ERROR:  instrucciones de secuencimaineto en ALU y Memoria ");       
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| R       ", "| nop  ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R       ", "| M     ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| M     ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    end if;
+--             when "0 00 111" =>  A M E
+             when 7 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("case 7, ERROR:  instrucciones de secuencimaineto en ALU y Memoria ");       
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R       ", "| M     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| M     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    else
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("case 7, ERROR:  instrucciones de secuencimaineto en ALU y Memoria ");       
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R       ", "| M     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| M     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    end if;
+
+-- instruccion de secuenciamiento, sin guardar la direccion de retorno,  en la etapa E.
+--             when "0 01 000" =>  nop nop -
+             when 8 =>  
+                    if (riesgoD = '1') then
+                       writeln (" case 8, ERROR: comprobar la logica de deteccion de riesgos de datos "); 
+                    else      
+                      if (secu_A = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| nop  ", "| -       ","   ", "     R_dat: ",riesgoD,    "   t: ", now()); 
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| nop  ", "| -       ","   ", "     R_dat: ",riesgoD,    "   t: ", now());
+                      end if;
+                    end if;
+--             when "0 01 001" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa E y actualizar BR
+             when 9 =>           
+                    writeln ("case 9, ERROR:  la instruccion en la etapa E es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "0 01 010" => nop M -
+             when 10 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                       writeln (" case 10, ERROR: instrucciones de secuenciamiento en Mem y escritura en el BR "); 
+                      else
+                        if (secu_A = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| -     ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    else   
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                       writeln (" case 10, ERROR: instrucciones de secuenciamiento en Mem y escritura en el BR "); 
+                      else
+                        if (secu_A = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    end if;
+--             when "0 01 011" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa E y actualizar BR
+             when 11 =>           
+                    writeln ("case 11, ERROR:  la instruccion en la etapa E es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "0 01 100" => A nop -
+             when 12 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R       ", "| nop  ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());     
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| nop  ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());     
+                      end if;
+                    else
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R       ", "| nop  ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| nop  ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if; 
+                    end if;
+--             when "0 01 101" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa E y actualizar BR
+             when 13 =>           
+                    writeln ("case 13, ERROR:  la instruccion en la etapa E es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "0 01 110" => A M -
+             when 14 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                          writeln ("case 14, ERROR:  instrucciones de secuenciamiento en la etapa Mem y actualizacion del BR ");
+                      else
+                        if ((mA_A or mI_A or opsec_A) = '1') then 
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R       ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    else
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                          writeln ("case 14, ERROR:  instrucciones de secuenciamiento en la etapa Mem y actualizacion del BR ");
+                      else
+                        if ((mA_A or mI_A or opsec_A) = '1') then 
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R       ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    end if;
+--             when "0 01 111" =>  error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa E y actualizar BR
+             when 15 =>           
+                    writeln ("case 11, ERROR:  la instruccion en la etapa E es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+-- instruccion de secuenciamiento, sin guardar la direccion de retorno,  en la etapa M.
+--             when "0 10 000" =>  nop - nop
+             when 16 =>  
+                    if (riesgoD = '1') then
+                      writeln (" case 16, ERROR: comprobar la logica de deteccion de riesgos de datos "); 
+                    else      
+                      if (secu_A = '1') then
+                        writeln (" case 16, ERROR: en etapas ALU y memoria hay una instruccion de secuenciamiento ");
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| -     ", "| nop   ","   ", "     R_dat: ",riesgoD,    "   t: ", now());
+                      end if;
+                    end if;
+--             when "0 10 001" => nop - E
+             when 17 =>           
+                    if (riesgoD = '1') then
+                      if (secu_A = '1') then
+                        writeln (" case 17, ERROR: en etapas ALU y memoria hay una instruccion de secuenciamiento ");       
+                      else 
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| -     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());       
+                      end if;
+                    else      
+                      if (secu_A = '1') then
+                        writeln (" case 17, ERROR: en etapas ALU y memoria hay una instruccion de secuenciamiento ");       
+                      else 
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| -     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());       
+                      end if;
+                    end if;
+--             when "0 10 010" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa M y actualizar BR
+             when 18 =>           
+                    writeln ("case 18, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "0 10 011" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa M y actualizar BR
+             when 19 =>           
+                    writeln ("case 19, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "0 10 100" => A - nop
+             when 20 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln (" case 20, ERROR: en etapas ALU y memoria hay una instruccion de secuenciamiento ");
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| -     ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());
+                      end if;
+                    else
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln (" case 20, ERROR: en etapas ALU y memoria hay una instruccion de secuenciamiento ");    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| -     ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+--             when "0 10 101" => A - E
+             when 21 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln (" case 21, ERROR: en etapas ALU y memoria hay una instruccion de secuenciamiento ");
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| -     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());
+                      end if;
+                    else
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln (" case 21, ERROR: en etapas ALU y memoria hay una instruccion de secuenciamiento ");    
+                       else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| -     ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+--             when "0 10 110" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa M y actualizar BR
+             when 22 =>           
+                    writeln ("case 22, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "0 10 111" =>  error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa M y actualizar BR
+             when 23 =>           
+                    writeln ("case 23, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+-- dos instrucciones de secuenciamiento en secuencia (consecutivas en el espacio logico).
+             when 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 => 
+                    writeln ("case 24, 25, 26, 27, 28, 29, 30, 31 ERROR:  No es posible que haya dos instrucciones de secuenciamiento en secuencia ");
+
+-- instruccion de calculo en la etapa M
+--             when "1 00 000" =>  nop nop nop
+              when 32 =>  
+                      writeln (" case 32, ERROR: No puede haber una instruccion de calculo en la etapa M y que no se actualice el BR "); 
+
+--             when "1 00 001" => nop nop E
+             when 33 =>           
+                      writeln (" case 33, ERROR: No puede haber una instruccion de calculo en la etapa M y que no se actualice el BR "); 
+                      
+--             when "1 00 010" => nop R nop
+             when 34 =>           
+                    if (riesgoD = '1') then
+                      if (secu_A = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| -     ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                             
+                      end if;
+                    else   
+                      if (secu_A = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                             
+                      end if;
+                    end if;
+--             when "1 00 011" => nop R E
+             when 35 =>           
+                    if (riesgoD = '1') then
+                      if (secu_A = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| -     ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    else   
+                      if (secu_A = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+--             when "1 00 100" => A nop nop
+             when 36 =>           
+                      writeln (" case 36, ERROR: No puede haber una instruccion de calculo en la etapa M y que no se actualice el BR "); 
+                      
+--             when "1 00 101" => A nop E
+             when 37 =>           
+                      writeln (" case 37, ERROR: No puede haber una instruccion de calculo en la etapa M y que no se actualice el BR "); 
+                      
+--             when "1 00 110" => A R nop
+             when 38 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R       ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    else
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R       ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+--             when "1 00 111" =>  A R E
+             when 39 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R       ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    else
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R       ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| R       ", "| E      ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+
+
+-- instruccion de calculo en la etapa M e
+-- instruccion de secuenciamiento, sin guardar la direccion de retorno,  en la etapa E.
+--             when "1 01 000" =>  nop nop -
+             when 40 =>  
+                      writeln (" case 40, ERROR: No puede haber una instruccion de calculo en la etapa M y que no se actualice el BR "); 
+                      
+--             when "1 01 001" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa E y actualizar BR
+             when 41 =>           
+                    writeln ("case 41, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "1 01 010" => nop R -
+             when 42 =>           
+                    if (riesgoD = '1') then
+                      if (secu_A = '1') then   
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| -     ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now()); 
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now()); 
+                      end if; 
+                    else   
+                      if (secu_A = '1') then   
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now()); 
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now()); 
+                      end if;
+                    end if;
+--             when "1 01 011" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa E y actualizar BR
+             when 43 =>           
+                    writeln ("case 43, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "1 01 100" => A nop -
+             when 44 =>           
+                      writeln (" case 44, ERROR: No puede haber una instruccion de calculo en la etapa M y que no se actualice el BR "); 
+                      
+--             when "1 01 101" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa E y actualizar BR
+             when 45 =>           
+                    writeln ("case 45, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "1 01 110" => A R -
+             when 46 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| -     ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    else
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+--             when "1 01 111" =>  error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa E y actualizar BR
+             when 47 =>           
+                    writeln ("case 47, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+-- instruccion de calculo en la etapa M e
+-- instruccion de secuenciamiento, sin guardar la direccion de retorno,  en la etapa M. No es posible
+             when 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 => 
+                    writeln ("case 48, 49, 50, 51, 52, 53, 54, 55, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+-- instruccion de calculo en la etapa M e
+-- instruccion de secuenciamiento, sin guardar la direccion de retorno,  en la etapa M. No es posible
+-- Ademas, dos instrucciones de secuenciamiento en secuencia (consecutivas en el espacio logico).
+             when 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 => 
+                    writeln ("case 56, 57, 58, 59, 60, 61, 62, 63, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+-- deteccion de store en etapa de escritura en BR
+--             when "0 00 000" =>  nop nop -
+             when 64 =>  
+                    if (riesgoD = '1') then
+                     writeln (" case 64, ERROR: comprobar la logica de deteccion de riesgos de datos "); 
+                    else      
+                      if (secu_A = '1') then   
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| nop  ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| nop  ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());
+                      end if;
+                    end if;
+
+--             when "0 00 001" => nop nop E
+             when 65 =>           
+                     writeln (" case 65, ERROR: no puede haber dos instrucciones en la etapa E "); 
+
+--             when "0 00 010" => nop M -
+             when 66 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if (secu_A = '1') then
+                          writeln (" case 66, ERROR: instrucciones de secuenciamiento en las etapas ALU y Mem ");              
+                        else   
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if (secu_A = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| -     ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());   
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    else   
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if (secu_A = '1') then
+                          writeln (" case 66, ERROR: instrucciones de secuenciamiento en las etapas ALU y Mem ");              
+                        else   
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| R       ", "| nop ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if (secu_A = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());   
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    end if;                      
+--             when "0 00 011" => nop M E
+             when 67 =>           
+                     writeln (" case 67, ERROR: no puede haber dos instrucciones en la etapa E "); 
+
+--             when "0 00 100" => A nop -
+             when 68 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R       ", "| nop  ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| nop  ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    else
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R       ", "| nop  ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| nop  ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+--             when "0 00 101" => A nop E
+             when 69 =>           
+                     writeln (" case 69, ERROR: no puede haber dos instrucciones en la etapa E "); 
+                     
+--             when "0 00 110" => A M -
+             when 70 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("case 6, ERROR:  instrucciones de secuencimaineto en ALU y Memoria ");       
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R       ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    else
+                      if ((mA_M or mI_M or opsec_M) = '1') then
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("case 6, ERROR:  instrucciones de secuencimaineto en ALU y Memoria ");       
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());                          
+                        end if;
+                      else
+                        if ((mA_A or mI_A or opsec_A) = '1') then
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R       ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        else
+                          writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| M     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                        end if;
+                      end if;
+                    end if;
+                    
+--             when "0 00 111" =>  A M E
+             when 71 =>           
+                     writeln (" case 71, ERROR: no puede haber dos instrucciones en la etapa E "); 
+                     
+             when 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 => 
+                    writeln ("case 72, 73, 74, 75, 76, 77, 78, 79, ERROR:  no puede haber dos instrucciones en la etapa E ");
+
+
+--             when "0 10 000" =>  nop - -
+             when 80 =>  
+                    if (riesgoD = '1') then
+                     writeln (" case 80, ERROR: comprobar la logica de deteccion de riesgos de datos "); 
+                    else      
+                      if (secu_A = '1') then  
+                        writeln (" case 80, ERROR: instrucciones de secuenciamiento en etapas ALU y Mem ");
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| -     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());
+                      end if;
+                    end if;
+--             when "0 10 001" => nop - E
+             when 81 =>           
+                     writeln (" case 81, ERROR: no puede haber dos instrucciones en la etapa E "); 
+
+--             when "0 10 010" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa M y actualizar BR
+             when 82 =>           
+                    writeln ("case 82, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "0 10 011" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa M y actualizar BR
+             when 83 =>           
+                    writeln ("case 83, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "0 10 100" => A - -
+             when 84 =>           
+                    if (riesgoD = '1') then
+                      if (secu_A = '1') then  
+                        writeln (" case 84, ERROR: instrucciones de secuenciamiento en etapas ALU y Mem ");
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| -     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    else
+                      if (secu_A = '1') then  
+                        writeln (" case 84, ERROR: instrucciones de secuenciamiento en etapas ALU y Mem ");
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| -     ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+--             when "0 10 101" => A - E
+             when 85 =>           
+                     writeln (" case 85, ERROR: no puede haber dos instrucciones en la etapa E "); 
+                     
+--             when "0 10 110" => error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa M y actualizar BR
+             when 86 =>           
+                    writeln ("case 86, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+--             when "0 10 111" =>  error. No es posible instruccion de secuenciamiento, sin guardar la direccion de retorno, en la etapa M y actualizar BR
+             when 87 =>           
+                    writeln ("case 87, ERROR:  la instruccion en la etapa M es de secuenciamiento. No es del tipo que almacena la direccion de retorno. Sin embargo se actualiza el BR ");
+
+-- dos instrucciones de secuenciamiento en secuencia (consecutivas en el espacio logico).
+             when 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 => 
+                    writeln ("case 88, 89, 90, 91, 92, 93, 94, 95 ERROR:  No es posible que haya dos instrucciones de secuenciamiento en secuencia ");
+
+
+-- instruccion de calculo en la etapa M
+--             when "1 00 000" =>  nop nop -
+             when 96 =>  
+                     writeln (" case 96, ERROR: Instruccion de calculo en la etapa Mem y no se actualiza el BR "); 
+
+--             when "1 00 001" => nop nop E
+             when 97 =>           
+                     writeln (" case 97, ERROR: no puede haber dos instrucciones en la etapa E "); 
+
+--             when "1 00 010" => nop R -
+             when 98 =>           
+                    if (riesgoD = '1') then
+                      if (secu_A = '1') then  
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| -     ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| nop  ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    else   
+                      if (secu_A = '1') then  
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| -     ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| nop  ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+--             when "1 00 011" => nop R E
+             when 99 =>           
+                     writeln (" case 99, ERROR: no puede haber dos instrucciones en la etapa E "); 
+                     
+--             when "1 00 100" => A nop -
+             when 100 =>           
+                     writeln (" case 96, ERROR: Instruccion de calculo en la etapa Mem y no se actualiza el BR "); 
+                     
+--             when "1 00 101" => A nop E
+             when 101 =>           
+                     writeln (" case 101, ERROR: no puede haber dos instrucciones en la etapa E "); 
+                     
+--             when "1 00 110" => A R -
+             when 102 =>           
+                    if (riesgoD = '1') then
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| R       ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DLB  ", "| A      ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    else
+                      if ((mA_A or mI_A or opsec_A) = '1') then
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| R       ", "| R      ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      else
+                        writeln ("                                      ","CP_B : ", CP(15 downto 12), " ", CP(11 downto 8), " ", CP(7 downto 4), " ", CP(3 downto 0), "  | DL    ", "| A      ", "| R       ", "| -     ","   ", "     R_dat: ",riesgoD,    "   t: ", now());    
+                      end if;
+                    end if;
+--             when "1 00 111" =>  A R E
+             when 103 =>           
+                     writeln (" case 101, ERROR: no puede haber dos instrucciones en la etapa E "); 
+                     
+-- no puede haber dos instrucciones en la etapa E.
+             when 104 | 105 | 106 | 107 | 108 | 109 | 110 | 111 => 
+                    writeln ("case 104, 105, 106, 107, 108, 109, 110, 111 ERROR:  no puede haber dos instrucciones en la etapa E ");
+
+-- no puede haber dos instrucciones en la etapa M.
+             when 112 | 113 | 114 | 115 | 116 | 117 | 118 | 119 => 
+                    writeln ("case 112, 113, 114, 115, 116, 117, 118, 119 ERROR:  no puede haber dos instrucciones en la etapa M ");                     
+
+-- no puede haber dos instrucciones en la etapa E.
+             when 120 | 121 | 122 | 123 | 124 | 125 | 126 | 127 => 
+                    writeln ("case 120, 121, 122, 123, 124, 125, 126, 127 ERROR:  no puede haber dos instrucciones en la etapa E ");
+
+
+
+             when others =>  
+                    writeln ("others, ERROR:  ", PBRA, OPMD3A,PBRM, OPMD3M, PBRE, OPMD3M_E);
+       end case;
+       OPMD3M_E := OPMD3M;  -- memorizar store en etapa M
+--       OPMD3M_E := OPMD(1);  -- memorizar store en etapa M
+--       riesgoS_M <= riesgoS;
+       
+     if (riesgoD = '1') then
+       mA_A <= '0';
+       mA_M <= mA_A;
+       mA_E <= mA_M;      
+       mI_A <= '0';
+       mI_M <= mI_A;
+       mI_E <= mI_M;  
+       opsec_A <= '0';
+       opsec_M <= opsec_A;
+       opsec_E <= opsec_M;
+     else
+       mA_A <= mA;
+       mA_M <= mA_A;
+       mA_E <= mA_M;      
+       mI_A <= mI;
+       mI_M <= mI_A;
+       mI_E <= mI_M;  
+       opsec_A <= opsec;
+       opsec_M <= opsec_A;
+       opsec_E <= opsec_M;
+     end if;      
+--       writeln ("                                                                                                                  ", OPMD3M, OPMD3M_E, mAA_M,mAA_E,opsecA_M,opsecA_E   );
+--       writeln("Enter output_process at ", now(), "AME : ", AME, "PBRA  ", PBRA, "OPMD3A  ", OPMD3A);
+--     end if;
+     end if;       
+   end process Pdeco_etapas_print;
+  
+end;
+
+
+ 

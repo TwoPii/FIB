@@ -1,0 +1,15 @@
+https://www.digikey.com/product-detail/en/adafruit-industries-llc/858/1528-1366-ND/5629414	
+€ 4.22			
+https://media.digikey.com/pdf/Data%20Sheets/Adafruit%20PDFs/858_Web.pdf	
+
+
+https://www.digikey.es/product-detail/es/seeed-technology-co-ltd/108990000/1597-1201-ND/5487660	
+€ 5.89	
+Driver / reductora / 0,0088º step
+https://www.seeedstudio.com/document/pdf/Stepper%20Motor%20Datasheet.pdf	
+
+
+https://www.digikey.es/product-detail/es/mikroelektronika/MIKROE-1530/1471-1491-ND/5724295	
+€ 6.83	
+Sense driver / reductora / 0,0088º step		
+https://www.digikey.es/es/datasheets/mikroelektronika/mikroelektronika-step-motor-5v-28byj48-datasheet						

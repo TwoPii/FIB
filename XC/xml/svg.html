@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<head>
+<script>
+function init() {
+  var svg = document.getElementById('drawing');
+
+  for (var x=0; x < 3; x++) {
+    for (var y=0; y < 3; y++) { 
+      var c = createCircle(54 + x*21, 46 + y*20, 8);
+      svg.appendChild(c);
+    }
+  }
+  var text = new XMLSerializer().serializeToString(svg);
+  console.log(text);
+}
+
+function createCircle(x, y, r) {
+   var e = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+   e.setAttribute("cx", x);
+   e.setAttribute("cy", y);
+   e.setAttribute("r", r);
+   e.setAttribute("fill", "white");
+   return e;
+}
+</script>
+</head>
+<body onload="init();">
+<p>Logo UPC:</p>
+<svg id="drawing" width="150" height="150">
+<circle fill="#007BC0" cx="75" cy="75" r="60"/>
+<text id="label_id" x="46" y="115" fill="white" font-size="22" font-weight="bold" font-family="Tahoma">U P C</text>
+</svg>
+</body>

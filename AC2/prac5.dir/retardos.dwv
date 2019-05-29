@@ -1,0 +1,36 @@
+package retardos is
+
+constant retALU: time := 5ns;
+constant retPBR: time := 1ns;
+
+constant retFMTE: time := 2ns;
+constant retFMTL: time := 2ns;
+constant retCNTLE: time := 2ns;
+
+constant retDECOT: time := 8ns;
+constant retDECS: time := 2ns;
+
+constant retCUATRO: time := 0ns;
+constant retFMT: time := 2ns;
+constant retMUX2: time := 2ns;
+constant retMUX3b5: time := 2ns;
+constant retMUX3: time := 2ns;
+constant ret31: time := 0ns;
+
+constant retBRES: time := 2ns;
+constant retBRLE: time := 2ns;
+constant retBRDECOIDE: time := 2ns; 
+constant retBRDECOIDL: time := 2ns; 
+
+constant retCONC: time := 2ns;
+constant retFMTI: time := 2ns;
+constant retSUMADOR: time := 2ns;
+
+constant retREGDES: time := 2ns;
+constant retEVAL: time := 1ns;
+
+constant retVAL: time := 2ns;
+constant retLDD: time := 3ns;
+constant retLD: time := 1ns;
+
+end retardos;

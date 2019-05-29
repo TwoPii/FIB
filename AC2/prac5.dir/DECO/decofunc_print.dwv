@@ -1,0 +1,315 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.campo_funct.all;
+
+use work.retardos.all;
+
+library LogicWorks;
+use LogicWorks.debug.all;
+
+entity decofunc_print is -- decodificacion del campo funct
+  port (INST: in STD_LOGIC_VECTOR (31 downto 0);
+		siguefunc: in std_logic;
+		sigue_e1: out std_logic
+		);
+end;
+
+architecture comportamiento of decofunc_print is
+
+
+  function imp_sll (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   if ((conv_integer(INSTrd) = 0) and (conv_integer(INSTrt) = 0) and (conv_integer(unsigned(INSTshamt)) = 0)) then
+		   writeln ("nop; sll r0, r0, 0");
+	   else
+		 writeln ("sll    ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrt), ", ", conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_sll;
+
+  function imp_srl (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("srl    ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrt), ", ", conv_integer(unsigned(INSTshamt)));
+  end function imp_srl;
+
+  function imp_sra (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("sra    ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrt), ", ", conv_integer(unsigned(INSTshamt)));
+  end function imp_sra;
+
+  function imp_sllv (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("sllv   ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrt), ", r", conv_integer(INSTrs));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en sllv incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_sllv;
+
+  function imp_srlv (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("srlv   ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrt), ", r", conv_integer(INSTrs));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en srlv incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_srlv;
+
+  function imp_srav (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("srav   ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrt), ", r", conv_integer(INSTrs));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en srav incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_srav;
+------------------------------------------------------------------------------------------------------------
+
+  function imp_jr (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+ variable lit: std_logic_vector(14 downto 0);
+	begin
+		writeln ("jr     ", "r", conv_integer(INSTrs));
+		if not((conv_integer(INSTrt)=0) and (conv_integer(INSTrd)=0)and(conv_integer(unsigned(INSTshamt))=0)) then
+			 lit := INSTrt & INSTrd & INSTshamt;
+		   writeln ("ERROR:  ", "campo bits[20 - 0] en jr incorrecto. Es distinto de cero:  ",  conv_integer(lit));
+		end if;
+  end function imp_jr;
+
+  function imp_jalr (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+		writeln ("jalr   ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs));
+		if not((conv_integer(INSTrt)=0)and(conv_integer(unsigned(INSTshamt))=0)) then
+		  writeln ("ERROR:  ", "campo bits[20 - 16] y [10 - 6] en jalr incorrecto. Es distinto de cero.  [20-16]:  ",  conv_integer(INSTrt), "[10-6]:  ",conv_integer(unsigned(INSTshamt)));
+		 end if;
+  end function imp_jalr;
+
+  function imp_movz (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("movz   ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en movz incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+		end if;
+  end function imp_movz;
+
+  function imp_movn (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("movn   ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en movn incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+		end if;
+  end function imp_movn;
+---------------------------------------------------------------------------------------------------
+  function imp_add (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("add    ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en add incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_add;
+
+  function imp_addu (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("addu   ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en addu incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_addu;
+
+  function imp_sub (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("sub    ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en sub incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_sub;
+
+  function imp_subu (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("subu   ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en subu incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_subu;
+
+  function imp_and (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("and    ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en and incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_and;
+
+  function imp_or (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("or     ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en or incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_or;
+
+  function imp_xor (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("xor    ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en xor incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_xor;
+
+  function imp_nor (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("nor    ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	   if not(conv_integer(unsigned(INSTshamt))=0) then
+		  writeln ("ERROR:  ", "campo shamt en nor incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_nor;
+---------------------------------------------------------------------------------
+  function imp_slt (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("slt    ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	  if not(conv_integer(unsigned(INSTshamt))=0) then
+		 writeln ("ERROR:  ", "campo shamt en slt incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_slt;
+
+  function imp_sltu (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTrd: in STD_LOGIC_VECTOR (4 downto 0); INSTshamt: in STD_LOGIC_VECTOR (4 downto 0)) return std_logic is
+	begin
+	   writeln ("sltu   ", "r", conv_integer(INSTrd), ", r", conv_integer(INSTrs), ", r", conv_integer(INSTrt));
+	  if not(conv_integer(unsigned(INSTshamt))=0) then
+		 writeln ("ERROR:  ", "campo shamt en sltu incorrecto. Es distinto de cero:  ",  conv_integer(unsigned(INSTshamt)));
+	   end if;
+  end function imp_sltu;
+-------------------------------------------------------------------------------------
+
+begin
+
+Pdecofunc_print:process(siguefunc)                         -- senyal de entrada INST
+-- campos de la instruccion
+variable rs:  std_logic_vector (4 downto 0);
+variable rt:  std_logic_vector (4 downto 0);
+variable rd:  std_logic_vector (4 downto 0);
+variable shamt:  std_logic_vector (4 downto 0);
+variable functA, functB:  std_logic_vector (2 downto 0);
+variable EcoopA, EcoopB : integer;
+variable EfunctA, EfunctB : integer;
+
+	  variable retu: std_logic;
+--variable ries_dos: std_logic_vector(1 downto 0);
+
+begin
+
+	if siguefunc'event and siguefunc = '1' then
+
+	rs := INST(25 downto 21);
+	rt := INST(20 downto 16);
+	rd := INST(15 downto 11);
+	shamt := INST(10 downto 6);
+	functA :=INST(5 downto 3);
+	functB :=INST(2 downto 0);
+
+--    ries_dos := '0' & riesgoS_M;
+
+-- control de encaminamiento y permisos de escritura
+	EfunctA := conv_integer(functA);				-- bits ALTOS del campo funct
+	case EfunctA is
+		when AFUCERO =>								-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUCERO
+			EfunctB := conv_integer(functB);
+						  case EfunctB is
+							 when Bsll =>                             -- sll shift left logical
+--                                  retu := imp_sll (rt, INST(15 downto 11), shamt, ries_dos); -- , '0'&riesgoS_M
+								  retu := imp_sll (rt, INST(15 downto 11), shamt);
+
+							 when Bsrl =>                             -- srl shift right logical
+								  retu := imp_srl (rt, INST(15 downto 11), shamt);
+
+							 when Bsra =>                             -- sra shift right arithmetic
+								  retu := imp_sra (rt, INST(15 downto 11), shamt);
+
+							 when Bsllv =>                            -- sllv shift left logical variable
+								  retu := imp_sllv (rt, rs, INST(15 downto 11), shamt);
+
+							 when Bsrlv  =>                           -- srlv shift right logical variable
+								  retu := imp_srlv (rt, rs, INST(15 downto 11), shamt);
+
+							 when  Bsrav =>                           -- srav shift right arithmetic variable
+								  retu := imp_srav (rt, rs, INST(15 downto 11), shamt);
+
+							 when others =>
+									  writeln ("ERROR:  ", "codigo de operacion  :",  conv_integer(unsigned(INST(31 downto 26))), " ,  campo funct  :", conv_integer(unsigned(INST(31 downto 26))));
+						  end case;
+
+		when AFUUNO =>								-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUUNO
+			EfunctB := conv_integer(functB);
+						  case EfunctB is
+							 when Bjr =>                              -- jr jump register
+								  retu := imp_jr (rt, rs, INST(15 downto 11), shamt);
+
+							 when Bjalr =>                            -- jalr jump and link register
+								  retu := imp_jalr (rt, rs, INST(15 downto 11), shamt);
+
+							 when Bmovz =>                            -- move conditional zero
+								  retu := imp_movz (rt, rs, INST(15 downto 11), shamt);
+
+							 when Bmovn =>                            -- move conditional no zero
+								  retu := imp_movn (rt, rs, INST(15 downto 11), shamt);
+
+							 when Bsyscall | Bbreak =>                -- syscall
+									--  parar <='1' en el otro proceso;                  -- break
+							 when others =>
+--                                     CoErr <= '1';
+						  end case;
+
+		when AFUCUATRO =>							-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUCUATRO
+			EfunctB := conv_integer(functB);
+						  case EfunctB is
+
+							  when Badd  =>                                                   -- add add
+									  retu := imp_add (rt, rs, INST(15 downto 11), shamt);
+
+							  when Baddu =>                                                   -- addu add unsigned
+									  retu := imp_addu (rt, rs, INST(15 downto 11), shamt);
+
+							  when Bsub  =>                                                   -- sub substract
+									  retu := imp_sub (rt, rs, INST(15 downto 11), shamt);
+
+							  when Bsubu  =>                                                  -- subu substract unsigned
+									  retu := imp_subu (rt, rs, INST(15 downto 11), shamt);
+
+							  when Band =>                                                   -- and and
+									  retu := imp_and (rt, rs, INST(15 downto 11), shamt);
+
+							  when Bor  =>                                                    -- or or
+									  retu := imp_or (rt, rs, INST(15 downto 11), shamt);
+
+							  when Bxor =>                                                    -- xor xor
+									  retu := imp_xor (rt, rs, INST(15 downto 11), shamt);
+
+							  when Bnor =>                                                    -- nor nor
+									  retu := imp_nor (rt, rs, INST(15 downto 11), shamt);
+
+							 when others =>
+									  writeln ("ERROR:  ", "codigo de operacion  :",  conv_integer(unsigned(INST(31 downto 26))), " ,  campo funct  :", conv_integer(unsigned(INST(31 downto 26))));
+						  end case;
+
+		when AFUCINCO =>							--funct: Bits BAJOS correspondientes a bits ALTOS = AFUCINCO
+			EfunctB := conv_integer(functB);
+						  case EfunctB is
+							 when Bslt =>                             -- slt set less than
+									 retu :=  imp_slt (rt, rs, INST(15 downto 11), shamt);
+
+							 when Bsltu =>                     -- sltu set less than unsigned
+									 retu := imp_sltu (rt, rs, INST(15 downto 11), shamt);
+
+							 when others =>
+									  writeln ("ERROR:  ", "codigo de operacion  :",  conv_integer(unsigned(INST(31 downto 26))), " ,  campo funct  :", conv_integer(unsigned(INST(31 downto 26))));
+						  end case;
+		when others =>
+								 writeln ("ERROR:  ", "codigo de operacion  :",  conv_integer(unsigned(INST(31 downto 26))), " ,  campo funct  :", conv_integer(unsigned(INST(31 downto 26))));
+	   end case;
+	   sigue_e1 <= '1';
+	   wait for 1ns;
+	   sigue_e1 <= '0';
+  end if;
+end process Pdecofunc_print;
+
+
+end;
+
+
+

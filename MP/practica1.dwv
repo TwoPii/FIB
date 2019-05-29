@@ -1,0 +1,58 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+entity MECtra is
+port ( reloj, pcero : in std_logic;
+coche: in std_logic ;
+TIEMPO: in std_logic;
+INIC: out std_logic;
+CP, CS: out std_logic);
+end MECtra;
+
+architecture comportamiento of MECtra is
+	type tipoestado is (PR, SE);
+    signal  EST, P_EST : tipoestado;
+--. . . -- (salida) y de su entrada
+
+
+function flanco_ascendente (signal reloj : std_logic)
+return boolean is
+begin
+return (reloj = '1' and reloj'event);
+end flanco_ascendente;
+begin
+
+estado: process (reloj, pcero) begin
+if pcero = '1' then EST <= PR;
+elsif flanco_ascendente (reloj) then
+EST <= P_EST;
+end if;
+end process;
+
+pr_est: process (EST, coche, TIEMPO) begin
+P_EST <= EST;
+case EST is
+when PR => if coche = '1' then
+P_EST <= SE;
+end if;
+when SE => if TIEMPO = '1' then
+P_EST <= PR;
+end if;
+when others => P_EST <= PR;
+end case;
+end process;
+
+salida: process (EST, coche) begin
+    INIC <= '0';
+    case EST is
+        when PR => CP <= '1';
+            CS <= '0'; 
+            if coche = '1' then
+                INIC <= '1'; 
+            end if;
+        when SE => CP <= '0'; 
+            CS <= '1'; 
+        when others => CP<= '1'; 
+            CS <= '0'; 
+    end case;
+end process;
+end comportamiento;

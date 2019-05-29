@@ -1,0 +1,46 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+use work.campo_co.all;
+
+entity decalu is -- ALU control decoder
+	port(funct: in std_logic_vector(5 downto 0);
+		opalu: in std_logic_vector(4 downto 0);
+		cntalu: out std_logic_vector(5 downto 0));
+end;
+
+architecture comportamiento of decalu is
+constant coalu: integer := 2;
+constant functalu: integer :=3;
+       
+begin
+  
+aludeco: process (opalu, funct) 
+variable vopaluA : std_logic_vector(1 downto 0);
+variable vopaluB  : std_logic_vector(2 downto 0);
+variable evopaluA, evopaluB : integer;
+     
+begin
+     
+	cntalu <= (others => '0');
+       
+	vopaluA := opalu(4 downto 3);
+	vopaluB := opalu(2 downto 0);
+	evopaluA := conv_integer(vopaluA); 
+	evopaluB := conv_integer(vopaluB);
+       
+	case evopaluA is
+		when functalu  =>
+			cntalu <= funct;           
+               
+		when coalu =>
+			case evopaluB is
+				when Bslti | Bsltiu =>
+					cntalu <= "101" & vopaluB;			-- slt y sltu tienen en el campo func el bit 3 igual a 1 y se utiliza para
+				when others =>							-- seleccionar entre estas operaciones y la salida del sumador
+					cntalu <= "100"& vopaluB;     
+			end case;
+	end case;                 
+end process aludeco;
+end;

@@ -1,0 +1,36 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.retardos.all;
+
+library libs;
+use libs.libRiesCortos.all;
+
+entity LRD is
+generic(tam: natural := 5);
+	port(rsA, rtA: in std_logic;
+		rsM, rtM: in std_logic;
+		rsE, rtE: in std_logic;
+		opMDA : in std_logic_vector(tam-1 downto 0);
+		RD: out std_logic);
+end LRD;
+
+
+architecture estructural of LRD is
+	component orv	
+		port(a, b: in std_logic;
+			s: out std_logic);
+	end component orv;
+	
+	component andv	
+		port(a, b: in std_logic;
+		s: out std_logic);
+	end component andv;
+	
+    signal c: std_logic;
+begin
+    
+    o: orv port map (a => rsA, b => rtA, s => c);
+    a: andv port map (a => opMDA(4), b => c, s => RD);
+    
+end estructural;
+

@@ -1,0 +1,35 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+entity despla2 is								-- unidad de desplazamientos
+generic(tam: natural := 32); 					-- logicos y aritmeticos
+	port(a, b : in std_logic_vector(tam-1 downto 0);
+		control : in std_logic_vector(1 downto 0);
+		S : out std_logic_vector (tam-1 downto 0));
+end despla2;
+
+architecture flujo of despla2 is
+signal dere, arit, despl: std_logic;
+signal sel : std_logic_vector (2 downto 0);
+signal bt : std_logic_vector(tam-1 downto 0);
+signal filtrobits: std_logic_vector(tam-1 downto 0);
+signal filtro: std_logic_vector (tam-6 downto 0);
+
+begin
+	filtro <= (others => '0');
+	filtrobits <= filtro &"11111";  -- se utilizan los 5 bits menos significativos
+	bt <= b and filtrobits;
+
+	arit <= control(0);
+	dere <= control(1);
+	despl <= '0';
+   
+	sel <= despl & dere & arit;
+   
+	with conv_integer(sel) select
+		S <= a sll conv_integer(bt) when 0,
+			a srl conv_integer(bt) when 2,
+ 			a sra conv_integer(bt) when 3,
+			a when others;
+end flujo;

@@ -1,0 +1,15 @@
+ghci
+31 + 1
+'q'
+"kk"
+35 /= 34
+35 == 35
+&&
+||
+not
+:quit
+:load fitxer.hs
+map slowFib [0..10]
+https://www.haskell.org/hoogle/
+
+fromIntegral

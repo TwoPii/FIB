@@ -1,0 +1,14 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+entity mnOR is 
+	generic(tam: natural := 32);
+		port(a: in std_logic_vector(tam-1 downto 0);
+			b: in std_logic_vector(tam-1 downto 0);
+			s: out std_logic_vector(tam-1 downto 0));
+end mnOR;
+
+architecture arch1 of mnOR is
+begin
+      s <= a nor b;
+end arch1;

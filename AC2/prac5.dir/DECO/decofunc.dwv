@@ -1,0 +1,194 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.campo_funct.all;
+
+entity decofunc is -- decodificacion del campo funct
+	port(INST: in std_logic_vector(31 downto 0);  
+		Senca: out std_logic_vector(26 downto 0));
+end;
+
+architecture comportamiento of decofunc is
+-- seleccion en multiplexores
+  -- mIE: registro destino
+  constant mIERD: std_logic_vector(1 downto 0) := "00";
+  constant mIERT: std_logic_vector(1 downto 0) := "01";
+  constant MIE31: std_logic_vector(1 downto 0) := "10";
+
+  -- mL1: salida pueto L1 o literal
+  constant mL1R: std_logic := '0';
+  constant mL1I: std_logic := '1';
+  
+  -- mL2: salida pueto L2 o literal
+  constant mL2R: std_logic := '0';
+  constant mL2I: std_logic := '1';
+
+  -- mES: actualizacion del banco de registros  
+  constant mESALU: std_logic_vector(1 downto 0) := "00";
+  constant mESMEM: std_logic_vector(1 downto 0) := "01";
+  constant mESRET: std_logic_vector(1 downto 0) := "10";
+  
+-- seleccion en formateador (FMT)
+  constant litExtSig: std_logic_vector(1 downto 0) := "00";
+  constant litExtZero: std_logic_vector(1 downto 0) := "01";
+  constant litlui: std_logic_vector(1 downto 0) := "10";
+  constant litshamt: std_logic_vector(1 downto 0) := "11";
+  
+-- permiso de escritura en el banco de registros
+   constant peEsreg: std_logic := '1';
+
+-- secuenciamiento absoluto
+--   constant secabs: std_logic := '1';
+
+-- secuenciamiento indexado
+--   constant secinde: std_logic := '1';
+
+-- opalu: operacion en la alu. Codificacion
+--         opalu: out STD_LOGIC_VECTOR (4 downto 0);
+         
+-- opMD: operacion en memoria. Codificacion: bit mas significativo indica acceso a memoria, 
+-- siguientes cuatro bits, menos significativos, son los cuatro bits
+-- menos significativos del codigo de operacion
+-- opMD: out std_logic_vector (4 downto 0):= '1'& opA(0) & opB
+   constant decMD: std_logic := '1';  
+       
+-- opsec: operacion de secuenciamiento. Codificacion: el bits mas significativo indica
+-- instruccion de secuenciamiento condicional, loa tres bits menos significativos son
+-- los tres bits menos significativos del codigo de operacion o los tres bits menos
+-- significativos del campo RT.
+-- opsec: out std_logic_vector (3 downto 0):= '1' & opB;si es del tipo RGIMM '1' & RTB
+   constant decs: std_logic := '1';           
+
+-- senyal Senca
+-- encaminamiento en la unidad de calculo
+signal   mIE :  std_logic_vector(1 downto 0);
+signal   PBR :  std_logic;
+signal   liter:  std_logic_vector(1 downto 0);
+signal   mL1:  std_logic;
+signal   mL2:  std_logic;
+signal   mES:  std_logic_vector (1 downto 0);
+-- encaminamiento en la unidad de secuenciamiento                        
+signal   mA:  std_logic;
+signal   mI:  std_logic;
+-- control de la alu, memoria y secuencimaiento
+signal   opalu:  std_logic_vector(4 downto 0);
+signal   opMD:  std_logic_vector(4 downto 0);
+signal   opsec:  std_logic_vector(3 downto 0);
+-- situaciones de error                 
+signal   CoErr:  std_logic ;
+signal   CoMo:  std_logic;
+
+begin
+
+Pdecofunc:process(INST)                         -- senyal de entrada INST
+-- campos de la instruccion
+variable rs:  std_logic_vector (4 downto 0);
+variable rt:  std_logic_vector (4 downto 0);
+variable rd:  std_logic_vector (4 downto 0);
+variable shamt:  std_logic_vector (4 downto 0);
+variable functA, functB:  std_logic_vector (2 downto 0);             
+variable EcoopA, EcoopB : integer;
+variable EfunctA, EfunctB : integer; 
+begin
+	rs := INST(25 downto 21);
+	rt := INST(20 downto 16);
+	rd := INST(15 downto 11);
+	shamt := INST(10 downto 6);
+	functA :=INST(5 downto 3);
+	functB :=INST(2 downto 0);
+-- valores por defecto de las senyales de salida             
+	mIE <= "00";
+	PBR <= '0';
+	liter <= litExtSig;    
+	mL1 <= '0';
+	mL2 <= '0';
+	mES <= "00";
+            
+	mA <= '0';
+	mI <= '0';
+
+	opalu <= "11"&"000";
+	opMD <= "00000";
+	opsec <= "0000";
+
+	CoErr <= '0';
+	CoMo <= '0';
+  
+-- control de encaminamiento y permisos de escritura       
+	EfunctA := conv_integer(functA);				-- bits ALTOS del campo funct
+	case EfunctA is
+		when AFUCERO =>								-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUCERO
+			EfunctB := conv_integer(functB);
+			case EfunctB is
+				when Bsll | Bsrl | Bsra =>					-- sll shift left logical
+					PBR <= peEsreg;							-- srl shift right logical
+					mL1 <= '1'; 							-- sra shift right arithmetic
+ 					liter <= litshamt;
+				when Bsllv | Bsrlv | Bsrav => 				-- sllv shift left logical variable
+					PBR <= '1';								-- srlv shift right logical variable
+															-- srav shift right arithmetic variable
+					if not(conv_integer(shamt)=0) then
+						CoErr <= '1';
+					end if; 
+				when others => 
+					CoErr <= '1';
+			end case;                                          
+ 		when AFUUNO =>								-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUUNO
+			EfunctB := conv_integer(functB);
+ 			case EfunctB is
+ 				when Bjr =>									-- jr jump register
+					mI <= '1';
+					if not((conv_integer(rt)=0) and (conv_integer(rd)=0)and(conv_integer(shamt)=0)) then
+						CoErr <= '1';
+					end if;   
+				when Bjalr =>								-- jalr jump and link register    
+					mES <= "10";
+					PBR <= peEsreg;
+					mI <= '1';
+ 					if not((conv_integer(rt)=0)and(conv_integer(shamt)=0)) then
+						CoErr <= '1';
+					end if;   
+				when Bmovz =>								-- move conditional zero
+ 						PBR <= '1';
+ 				when Bmovn =>								-- move conditional no zero
+						PBR <= '1';                     
+				when Bsyscall | Bbreak =>					-- syscall
+						CoMo <='1';    					-- break  
+				when others => 
+                                     CoErr <= '1';
+			end case;
+		when AFUCUATRO =>							-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUCUATRO
+			EfunctB := conv_integer(functB);
+			case EfunctB is 
+				when Badd | Baddu | Bsub | Bsubu | Band | Bor | Bxor | Bnor =>		-- add add
+					PBR <= peEsreg;													-- addu add unsigned
+					if not(conv_integer(shamt)=0) then								-- sub substract
+						CoErr <= '1';												-- subu substract unsigned
+ 					end if;															-- and and
+																					-- or or
+																					-- xor xor
+																					-- nor nor    
+				when others => 
+						CoErr <= '1';                                                
+			end case;
+		when AFUCINCO =>							--funct: Bits BAJOS correspondientes a bits ALTOS = AFUCINCO
+			EfunctB := conv_integer(functB);
+				case EfunctB is 
+					when Bslt | Bsltu => 							-- slt set less than
+						PBR <= peEsreg;								-- sltu set less than unsigned
+						if not(conv_integer(shamt)=0) then
+							CoErr <= '1';
+						end if;
+					when others => 
+								CoErr <= '1';
+				end case;
+		when others => 
+					CoErr <= '1';
+ 	end case;                                      
+end process Pdecofunc;
+
+      Senca <= mIE & PBR & liter & mL1 & mL2 & mES & mA & mI& opalu & opMD & opsec & CoErr & CoMo;    
+end;
+
+
+ 

@@ -1,0 +1,36 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+entity contador is
+port ( reloj, pcero, inic : in std_logic;
+q: out std_logic );
+end contador;
+architecture trespart of contador is
+signal r_reg: std_logic_vector (1 downto 0);
+signal r_prox: std_logic_vector (1 downto 0);
+begin
+--Estado
+reg: Process (reloj, pcero)
+begin
+	if (pcero ='1') then
+		r_reg <= (others => '1') after 2 ns;
+	elsif (reloj'event and reloj = '1') then
+		r_reg <= r_prox after 2 ns;
+	end if ;
+end process ;
+-- Logica de proximo estado
+p_r: process (inic, r_reg)
+begin
+	if (inic = '1' and r_reg ="11") then
+		r_prox <= (others => '0');
+	elsif r_reg ="11" then
+		r_prox <= r_reg;
+	else
+		r_prox <= r_reg +1;
+	end if;
+end process;
+-- Logica de salida
+with r_reg select
+	q <= '1' when "11",
+	'0' when others;
+end trespart;

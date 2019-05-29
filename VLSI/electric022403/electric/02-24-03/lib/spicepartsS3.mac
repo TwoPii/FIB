@@ -1,0 +1,51 @@
+; Electric VLSI Design System
+; Macro package for SPICE parts
+; Written by: Gerrit Groenewold
+; (c) Static Free Software 2002.
+; All or a portion of this program is subject to the restrictions
+; contained in a license granted by, and remains the unpublished
+; property of, Static Free Software.
+
+; this next line sets the name of the spice parts library
+var set Y "spicepartsS3"
+
+; the menu must be called "pmespi"
+menu popup pmespi size 37
+menu popup pmespi header N_("Spice Part")
+bind set popup pmespi message N_("Voltage Source AC-DC")              0 pmespmake VDC
+bind set popup pmespi message N_("Voltage Source Exponential")        1 pmespmake VEXP
+bind set popup pmespi message N_("Voltage Source Pulse")              2 pmespmake VPulse
+bind set popup pmespi message N_("Voltage Source Piece-Wise Linear")  3 pmespmake VPWL
+bind set popup pmespi message N_("Voltage Source Sinusoidal")         4 pmespmake VSIN
+bind set popup pmespi message N_("Voltage Source FM")                 5 pmespmake VSFFM
+bind set popup pmespi message N_("Voltage Source Generic")            6 pmespmake V_Generic
+bind set popup pmespi                                                 7 -
+bind set popup pmespi message N_("Current Source AC-DC")              8 pmespmake IDC
+bind set popup pmespi message N_("Current Source Exponential")        9 pmespmake IEXP
+bind set popup pmespi message N_("Current Source Pulse")             10 pmespmake IPulse
+bind set popup pmespi message N_("Current Source Piece-Wise Linear") 11 pmespmake IPWL
+bind set popup pmespi message N_("Current Source Sinusoidal")        12 pmespmake ISIN
+bind set popup pmespi message N_("Current Source FM")                13 pmespmake ISFFM
+bind set popup pmespi message N_("Current Source Generic")           14 pmespmake I_Generic
+bind set popup pmespi                                                15 -
+bind set popup pmespi message N_("Dependent Sources:")               16 -
+bind set popup pmespi message N_("CCCS")                             17 pmespmake CCCS
+bind set popup pmespi message N_("CCVS")                             18 pmespmake CCVS
+bind set popup pmespi message N_("VCCS")                             19 pmespmake VCCS
+bind set popup pmespi message N_("VCVS")                             20 pmespmake VCVS
+bind set popup pmespi message N_("Non-Linear")                       21 pmespmake NonLinSource
+bind set popup pmespi                                                22 -
+bind set popup pmespi message N_("Transmission Line")                23 pmespmake Transmission
+bind set popup pmespi message N_("Lossy Transmission Line")          24 pmespmake TransmissionL
+bind set popup pmespi message N_("Distributed RC Line")              25 pmespmake RC_Line
+bind set popup pmespi                                                26 -
+bind set popup pmespi message N_("Voltage-controlled Switch")        27 pmespmake Switch_V
+bind set popup pmespi message N_("Current-controlled Switch")        28 pmespmake Switch_I
+bind set popup pmespi                                                29 -
+bind set popup pmespi message N_("Transient Analysis")               30 pmespmake AnalysisTransient
+bind set popup pmespi message N_("DC Analysis")                      31 pmespmake AnalysisDC
+bind set popup pmespi message N_("AC Analysis")                      32 pmespmake AnalysisAC
+bind set popup pmespi                                                33 -
+bind set popup pmespi message N_("Well")                             34 getproto node schematic:Well
+bind set popup pmespi message N_("Substrate")                        35 getproto node schematic:Substrate
+bind set popup pmespi message N_("Node Set")                         36 pmespmake NodeSet

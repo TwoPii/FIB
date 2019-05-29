@@ -1,0 +1,27 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity RD2I is							-- registro con inicializacion a cero asincrona
+ generic (tam: natural := 2);
+ 
+  port (reloj, pes, I: in std_logic;				-- pes: senyal de inicializacion
+         e: in std_logic_vector(tam-1 downto 0);	-- I: senyal modo burbuja
+         s: out std_logic_vector(tam-1 downto 0));
+end;
+
+architecture comportamiento of RD2I is
+  begin
+     process (reloj, pes) begin
+       if pes = '1' then s <= (others => '0') after retREGDES;
+       elsif reloj'event and reloj = '1' then
+          if I ='1' then
+              s <= (others => '0') after retREGDES;
+          else       
+              s <= e after retREGDES;
+          end if;
+       end if;
+     end process;
+end;
+

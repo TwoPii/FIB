@@ -1,0 +1,105 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.numeric_std.all;
+
+library LogicWorks;
+use LogicWorks.debug.all;
+
+   entity cacheFSMtest is
+		generic (retardo: time := 2 ns);
+        port ( pcero: out STD_LOGIC;
+               LES: out STD_LOGIC;
+               PET: out STD_LOGIC;
+               LISTO: in STD_LOGIC;
+               DIR: out std_logic_vector (15 downto 0);
+               CDATO: in std_logic_vector (7 downto 0);
+               DATO: out std_logic_vector (7 downto 0);
+               
+  --             acceso: out std_logic_vector (7 downto 0);
+               reloj: in STD_LOGIC);
+   end;
+  
+   architecture synth of cacheFSMtest is
+   
+      constant SI : std_logic := '1';
+      constant NO : std_logic := '0';
+      
+      --constant A: std_logic_vector := "10100000";
+      --constant F: std_logic_vector := "11110000" ;
+      --constant AE: std_logic_vector := "10101110" ;
+      --constant AF1: std_logic_vector := "11111110";
+      
+      constant DIRA: std_logic_vector := x"0000";
+      constant DATA: std_logic_vector := x"AA";
+      constant DIRB: std_logic_vector := x"0010";
+      constant DATB: std_logic_vector := x"BB";
+      constant DIRF: std_logic_vector := x"FFFF";
+      constant DATF: std_logic_vector := x"FF";
+                  
+    function flanco_ascendente (signal reloj: std_logic) return boolean is
+    variable flanco: boolean:= FALSE;
+    begin
+      flanco := (reloj = '1' and reloj'event);
+    return (flanco);
+    end flanco_ascendente;      
+
+begin   
+      process 
+        begin
+      
+           pcero <= SI; 
+           LES <= SI;
+           PET <= NO;
+           DIR <= DIRF;
+           DATO <= DATF;
+
+           wait until flanco_ascendente(reloj);
+           pcero <= NO after retardo;
+           wait until flanco_ascendente(reloj);
+           wait until flanco_ascendente(reloj);
+           LES <= NO after retardo;
+           PET <= SI after retardo;
+           DIR <= DIRA after retardo;
+           DATO <= x"01" after retardo;
+           --falla escriptura
+           
+           wait until flanco_ascendente(reloj) and LISTO = SI;       
+           LES <= SI after retardo;
+           PET <= SI after retardo;               
+           DIR <= DIRA after retardo;
+           DATO <= x"02" after retardo;   
+           --falla lectura;
+           
+          wait until flanco_ascendente(reloj) and LISTO = SI; 
+           LES <= NO after retardo;
+           PET <= SI after retardo;
+           DIR <= DIRA after retardo;
+           DATO <= x"03" after retardo;
+           --encert escriptura
+
+          wait until flanco_ascendente(reloj) and LISTO = SI; 
+           LES <= SI after retardo;
+           PET <= SI after retardo;
+           DIR <= DIRA after retardo;
+           DATO <= x"04" after retardo;
+           --encert lectura
+
+          wait until flanco_ascendente(reloj) and LISTO = SI;
+           PET <= SI after retardo;
+           LES <= NO after retardo;
+           DIR <= DIRB after retardo;
+           DATO <= x"05" after retardo;
+           --falla escriptura 
+
+          wait until flanco_ascendente (reloj) and LISTO = SI;
+           LES <= SI after retardo;
+           PET <= SI after retardo;
+           DIR <= DIRB after retardo;
+           DATO <= x"06" after retardo;
+           --falla lectura
+           
+           wait until flanco_ascendente(reloj) and LISTO = SI;       
+           
+          --wait until flanco_ascendente (reloj);                           
+        end process;
+end;

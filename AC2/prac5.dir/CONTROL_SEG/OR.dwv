@@ -1,0 +1,14 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+entity ORp is 												
+	port(a, b, c, d, e, f: in std_logic;
+		s: out std_logic);
+end ORp;
+
+architecture comportamiento of ORp is
+
+begin
+	s <= a or b or c or d or e or f;        
+end;

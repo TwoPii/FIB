@@ -1,0 +1,279 @@
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<class>shownode_ext</class>
+<widget class="QWidget">
+    <property name="name">
+        <cstring>DGIN_ext</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>537</width>
+            <height>456</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>DGIN_ext</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout6</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QRadioButton">
+                    <property name="name">
+                        <cstring>EXPANDED</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Expanded</string>
+                    </property>
+                </widget>
+                <widget class="QRadioButton">
+                    <property name="name">
+                        <cstring>UNEXPANDED</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Unexpanded</string>
+                    </property>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer4</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>40</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>VISINSIDE</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Only Visible Inside Facet</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout8</cstring>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel" row="1" column="0" rowspan="2" colspan="3">
+                    <property name="name">
+                        <cstring>SPECIAL2_L</cstring>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="0" column="0">
+                    <property name="name">
+                        <cstring>SPECIAL1_L</cstring>
+                    </property>
+                </widget>
+                <widget class="QComboBox" row="2" column="2">
+                    <property name="name">
+                        <cstring>SPECIAL2</cstring>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="0" column="1" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>SPECIAL1</cstring>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout9</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QRadioButton">
+                    <property name="name">
+                        <cstring>SEEPORTS</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Ports:</string>
+                    </property>
+                </widget>
+                <widget class="QRadioButton">
+                    <property name="name">
+                        <cstring>SEEPARAMETERS</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Parameters:</string>
+                    </property>
+                </widget>
+                <widget class="QRadioButton">
+                    <property name="name">
+                        <cstring>SEEATTRIBUTES</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Attributes</string>
+                    </property>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer5</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>40</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+            </hbox>
+        </widget>
+        <widget class="EScrollField">
+            <property name="name">
+                <cstring>CONLIST</cstring>
+            </property>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout10</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>NODELOCKED</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Locked</string>
+                    </property>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer6</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>40</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>GETINFO</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Get Info</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>ATTRIBUTES</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Attributes</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout12</cstring>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel" row="2" column="1">
+                    <property name="name">
+                        <cstring>PARATTREV</cstring>
+                    </property>
+                </widget>
+                <widget class="QComboBox" row="1" column="1">
+                    <property name="name">
+                        <cstring>PARATTRLAN</cstring>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="0" column="1">
+                    <property name="name">
+                        <cstring>PARATTR</cstring>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="2" column="0">
+                    <property name="name">
+                        <cstring>PARATTREV_L</cstring>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="1" column="0">
+                    <property name="name">
+                        <cstring>PARATTRLAN_L</cstring>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="0" column="0">
+                    <property name="name">
+                        <cstring>PARATTR_L</cstring>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+    </vbox>
+</widget>
+<customwidgets>
+    <customwidget>
+        <class>EScrollField</class>
+        <header location="local">../../src/graph/graphqtdlg.h</header>
+        <sizehint>
+            <width>-1</width>
+            <height>-1</height>
+        </sizehint>
+        <container>0</container>
+        <sizepolicy>
+            <hordata>7</hordata>
+            <verdata>7</verdata>
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+        </sizepolicy>
+        <pixmap>image0</pixmap>
+    </customwidget>
+</customwidgets>
+<images>
+    <image name="image0">
+        <data format="XPM.GZ" length="1532">789c65d3594fe2601886e1737e4503676482b440c14ce64044dcc15d7432075f69ab94c5a22c2e99ff3ebd1fb4b19df76e2a57de7c8148d92a5b83b353abbc55785998c568680d1fcdb355f697d3e9dbef3fbf3e0a45c7b192cbb52dbbf8a350ec5b43abf7340b78dd4d5e971a1ae88b2d82fbe236c18e68088e448fe0441c1274459fe0b318107c12438215e856090e458760009b0ec117b14ef0516c102c892e414fd4c077b145d0c05695e02edc6e116c43e310dc119b040f448fe039f46c8287a24bf048d4c057a87f953ef385e8127c133d820d5103e7a24f70210604eb6248f012fa558233d126e888758263d12558139b04abe236c13bd123688b1a381003826b18540986a24d70253a0497628de0bda847075e892ec19ed822782c1a82b1e811bc15f5b1e08da881d76248700a439be099e8103c156b044fc43ac1486c12dc135b041f447d497af84b263fdee6bb0dc287fc848f233db85134febcc6e348672233d1663a9d712537eec96236354fdac4f17c1ecfe3afcb2437f3ac5fd462b90ad7ebf5eb7a33c9df37afa25fe2fb4e3b37bb461bbfd3decb4db4799fee7e3b3a383cfa3ec79b335dbf7d729a9ddee64c7fbf7d767e71f97dae366792cdf54d7696e9e63677264c37712f3b8374d3cb9db94b37f7abec54d3cd3277669c6ed676769c7433c89d997d6d766bf5ec343e379dff9e0363f490f7bb9d895bc98e3b29fefd59f807e5cf8733</data>
+    </image>
+</images>
+<layoutdefaults spacing="6" margin="11"/>
+<includehints>
+    <includehint>escrollfield.h</includehint>
+</includehints>
+</UI>

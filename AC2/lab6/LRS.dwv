@@ -1,0 +1,25 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.retardos.all;
+
+library libs;
+use libs.libRiesCortos.all;
+
+entity LRS is
+generic(tam: natural := 4);
+	port(mADL, mIDL : in std_logic;
+		opsec : in std_logic_vector(tam-1 downto 0);
+		RS: out std_logic);
+end LRS;
+
+
+architecture estructural of LRS is
+    component or3v	
+		port(a, b, c: in std_logic;
+			s: out std_logic);
+	end component or3v;
+begin
+
+	o: or3v port map (a => mADL, b => mIDL, c => opsec(3), s => RS);
+	
+end estructural;

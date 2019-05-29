@@ -1,0 +1,585 @@
+; ============= The header:
+; LC n           Library count
+; LD name file   Library read from disk
+; LM name file   Library not read from disk
+; WO n           Window offset currently 'n'
+; WT n           Window count
+; WC n x y w h   Component window, index 'n' at (x,y), size (wXh)
+; WE n x y w h   Edit window, index 'n' at (x,y), size (wXh)
+; WP n           Window has 'n' partitions
+; WB lx hx ly hy slx shx sly shy state facet loc    Window partition (background)
+; WF lx hx ly hy slx shx sly shy state facet loc    Window partition (foreground)
+; CI n           Current window index
+; CT tech        Current technology
+LC 1
+LM noname noname
+WO 30
+WT 2
+WE 1 136 0 915 491
+WP 1
+WF 0 882 12 447 -8921 8921 -4400 4400 8 ***NONODEPROTO*** entire
+WC 0 0 0 106 609
+WP 0
+CI 2
+CT mocmos
+; ============= The body:
+; KT k x y s w t Key 'k' typed at (x,y), special 's', window 'w', time 't'
+; BP n x y s w t Button 'n' pressed at (x,y), special 's', window 'w', time 't'
+; BD n x y s w t Button 'n' double-clicked at (x,y), special 's', window 'w', time 't'
+; BR n x y s w t Button 'n' released at (x,y), special 's', window 'w', time 't'
+; MP x y s w     Motion with button pressed at (x,y), special 's', window 'w'
+; MR x y s w     Motion with button released at (x,y), special 's', window 'w'
+; ME m i t       Invoked menu 'm', item 'i', time 't'
+; WS w x y t     Window 'w' grows to (xXy), time 't'
+; WM w x y t     Window 'w' moves to (x,y), time 't'
+; FS path        File selected is 'path'
+; PM v t         Popup menu selected 'v', time 't'
+; DI w i         Item 'i' of dialog 'w' selected
+; DS w i c vals  Dialog 'w' scroll item 'i' selects 'c' lines in 'vals'
+; DE w i hc s    Dialog 'w' edit item 'i' hit character 'hc', text now 's'
+; DP w i e       Dialog 'w' popup item 'i' set to entry 'e'
+; DC w i v       Dialog 'w' item 'i' set to value 'v'
+; DM w x y       Dialog 'w' coordinates at (x,y)
+; DD w           Dialog 'w' done
+MR 307 318 0 0
+WM 0 0 0 0
+WS 0 29 580 0
+MR 307 318 0 0
+WS 0 90 585 3
+MR 307 318 0 0
+WS 0 96 576 3
+MR 307 318 0 0
+MR 305 318 0 0
+MR 302 318 0 0
+MR 300 319 0 0
+MR 298 320 0 0
+MR 294 322 0 0
+MR 289 324 0 0
+MR 283 328 0 0
+MR 273 334 0 0
+MR 257 345 0 0
+MR 243 354 0 0
+MR 216 371 0 0
+MR 193 387 0 0
+MR 156 408 0 0
+MR 119 428 0 0
+ME 15 1 1152   ; command=Edit Facet.../N
+; Start dialog Facet to edit
+DC 2 5 0
+MR 116 109 0 0
+MR 114 99 0 0
+MR 112 93 0 0
+MR 110 90 0 0
+MR 110 89 0 0
+MR 109 88 0 0
+MR 109 90 0 0
+MR 109 93 0 0
+MR 110 99 0 0
+MR 112 105 0 0
+MR 118 113 0 0
+DI 2 1
+MR 30 575 0 0
+MR 153 79 0 0
+MR 196 29 0 0
+MR 314 35 0 0
+MR 269 103 0 0
+MR 233 149 0 0
+MR 119 107 0 0
+MR 125 94 0 0
+MR 131 83 0 0
+MR 137 75 0 0
+MR 141 70 0 0
+MR 146 65 0 0
+MR 150 61 0 0
+MR 155 60 0 0
+MR 158 59 0 0
+MR 162 57 0 0
+MR 166 57 0 0
+MR 169 57 0 0
+MR 172 57 0 0
+MR 175 57 0 0
+MR 177 56 0 0
+MR 179 55 0 0
+MR 181 54 0 0
+MR 184 53 0 0
+MR 187 52 0 0
+MR 188 52 0 0
+MR 191 50 0 0
+MR 194 48 0 0
+MR 196 47 0 0
+MR 197 46 0 0
+MR 198 45 0 0
+MR 198 47 0 0
+MR 199 49 0 0
+MR 200 53 0 0
+MR 203 59 0 0
+MR 203 62 0 0
+MR 204 68 0 0
+MR 205 71 0 0
+MR 205 73 0 0
+MR 205 75 0 0
+MR 205 76 0 0
+MR 205 77 0 0
+MR 205 78 0 0
+MR 205 79 0 0
+MR 203 79 0 0
+MR 202 80 0 0
+MR 200 81 0 0
+MR 199 82 0 0
+MR 198 83 0 0
+MR 197 84 0 0
+MR 196 84 0 0
+MR 195 86 0 0
+MR 194 86 0 0
+MR 193 87 0 0
+MR 193 89 0 0
+MR 192 90 0 0
+MR 191 90 0 0
+MR 190 91 0 0
+MR 190 93 0 0
+MR 189 95 0 0
+MR 189 97 0 0
+MR 189 98 0 0
+MR 188 100 0 0
+MR 188 101 0 0
+MR 188 103 0 0
+MR 188 104 0 0
+MR 187 104 0 0
+MR 187 105 0 0
+MR 187 107 0 0
+MR 187 109 0 0
+MR 187 111 0 0
+MR 186 112 0 0
+MR 186 113 0 0
+MR 186 114 0 0
+MR 185 114 0 0
+MR 185 115 0 0
+MR 185 116 0 0
+MR 184 117 0 0
+DI 2 1
+DI 2 2
+DD 2
+MR 98 336 0 0
+MR 72 413 0 0
+MR 57 469 0 0
+MR 27 561 0 0
+ME 0 2 2024   ; command=Open Library.../O
+FS C:\Users\genis\Documents\FIB\VLSI\lab4_rg_2511.elib
+; Start dialog UNTITLED
+DD 3
+MR 441 86 0 0
+MR 441 85 0 0
+MR 442 86 0 0
+MR 443 89 0 0
+MR 444 91 0 0
+MR 445 94 0 0
+MR 447 98 0 0
+MR 448 103 0 0
+MR 449 107 0 0
+MR 452 115 0 0
+MR 455 121 0 0
+MR 458 133 0 0
+MR 459 154 0 0
+MR 461 165 0 0
+MR 464 184 0 0
+MR 467 203 0 0
+MR 468 216 0 0
+MR 470 229 0 0
+MR 471 240 0 0
+MR 473 252 0 0
+MR 474 258 0 0
+MR 475 266 0 0
+MR 476 274 0 0
+MR 478 278 0 0
+MR 480 286 0 0
+MR 480 289 0 0
+MR 481 293 0 0
+MR 482 296 0 0
+MR 483 301 0 0
+MR 483 302 0 0
+MR 484 304 0 0
+MR 484 305 0 0
+MR 484 306 0 0
+MR 484 307 0 0
+MR 484 308 0 0
+MR 484 307 0 0
+MR 484 306 0 0
+MR 483 306 0 0
+MR 483 305 0 0
+MR 482 305 0 0
+MR 482 304 0 0
+MR 481 304 0 0
+MR 480 303 0 0
+MR 480 302 0 0
+MR 479 301 0 0
+MR 478 300 0 0
+MR 477 300 0 0
+MR 476 299 0 0
+MR 476 298 0 0
+MR 475 296 0 0
+MR 473 294 0 0
+MR 471 292 0 0
+MR 469 289 0 0
+MR 467 287 0 0
+MR 465 285 0 0
+MR 463 283 0 0
+MR 461 280 0 0
+MR 459 278 0 0
+MR 455 275 0 0
+MR 453 273 0 0
+MR 450 270 0 0
+MR 448 266 0 0
+MR 446 263 0 0
+MR 442 259 0 0
+MR 440 256 0 0
+MR 437 251 0 0
+MR 433 246 0 0
+MR 428 241 0 0
+MR 425 236 0 0
+MR 418 231 0 0
+MR 414 226 0 0
+MR 409 219 0 0
+MR 404 214 0 0
+MR 401 211 0 0
+MR 396 207 0 0
+MR 390 200 0 0
+MR 384 197 0 0
+MR 377 193 0 0
+MR 369 187 0 0
+MR 357 181 0 0
+MR 347 177 0 0
+MR 333 169 0 0
+MR 319 161 0 0
+MR 300 155 0 0
+MR 283 149 0 0
+MR 266 142 0 0
+MR 248 136 0 0
+MR 231 130 0 0
+MR 218 127 0 0
+MR 204 122 0 0
+MR 193 120 0 0
+MR 187 118 0 0
+MR 180 117 0 0
+MR 187 120 0 0
+MR 211 125 0 0
+MR 251 132 0 0
+MR 322 142 0 0
+MR 388 150 0 0
+MR 487 159 0 0
+MR 553 164 0 0
+MR 645 173 0 0
+MR 698 173 0 0
+MR 775 168 0 0
+MR 830 160 0 0
+MR 877 155 0 0
+MR 862 206 0 0
+MR 794 206 0 0
+MR 732 211 0 0
+MR 643 222 0 0
+MR 573 233 0 0
+MR 465 248 0 0
+MR 369 260 0 0
+MR 273 271 0 0
+MR 177 280 0 0
+MR 70 289 0 0
+MR 53 423 0 0
+MR 0 435 0 0
+MR 1 435 0 0
+MR 3 435 0 0
+MR 3 434 0 0
+MR 4 434 0 0
+MR 5 434 0 0
+MR 6 433 0 0
+MR 7 433 0 0
+MR 8 433 0 0
+MR 10 432 0 0
+MR 13 431 0 0
+MR 16 431 0 0
+MR 21 431 0 0
+MR 26 430 0 0
+MR 32 430 0 0
+MR 43 428 0 0
+MR 53 428 0 0
+MR 64 427 0 0
+MR 79 425 0 0
+MR 91 425 0 0
+MR 1 301 0 0
+MR 12 301 0 0
+MR 18 301 0 0
+MR 22 301 0 0
+MR 26 301 0 0
+MR 30 301 0 0
+MR 32 301 0 0
+MR 34 301 0 0
+MR 34 300 0 0
+MR 391 389 0 0
+MR 2 428 0 0
+MR 8 416 0 0
+MR 14 406 0 0
+MR 21 398 0 0
+MR 30 386 0 0
+MR 40 377 0 0
+MR 52 369 0 0
+MR 69 363 0 0
+MR 95 418 0 0
+MR 86 420 0 0
+MR 79 423 0 0
+MR 75 424 0 0
+MR 72 424 0 0
+MR 70 424 0 0
+MR 69 424 0 0
+MR 68 424 0 0
+MR 66 424 0 0
+MR 63 424 0 0
+MR 61 424 0 0
+MR 58 424 0 0
+MR 54 424 0 0
+MR 51 424 0 0
+MR 49 424 0 0
+MR 48 424 0 0
+MR 47 424 0 0
+MR 46 424 0 0
+MR 45 424 0 0
+MR 50 424 0 0
+MR 54 424 0 0
+MR 62 423 0 0
+MR 73 420 0 0
+MR 88 417 0 0
+MR 1 275 0 0
+MR 2 181 0 0
+MR 3 279 0 0
+MR 73 378 0 0
+MR 92 398 0 0
+MR 106 409 0 0
+MR 123 422 0 0
+MR 139 435 0 0
+MR 151 443 0 0
+MR 191 445 0 0
+MR 162 416 0 0
+MR 142 399 0 0
+MR 95 380 0 0
+MR 94 380 0 0
+MR 93 379 0 0
+MR 92 379 0 0
+MR 91 379 0 0
+MR 90 379 0 0
+MR 89 379 0 0
+MR 89 378 0 0
+MR 88 378 0 0
+MR 88 377 0 0
+MR 88 376 0 0
+MR 87 375 0 0
+MR 86 375 0 0
+MR 85 374 0 0
+MR 84 373 0 0
+MR 84 372 0 0
+MR 84 371 0 0
+MR 86 371 0 0
+MR 88 371 0 0
+MR 90 371 0 0
+MR 93 371 0 0
+MR 95 371 0 0
+MR 1 285 0 0
+MR 3 286 0 0
+MR 4 287 0 0
+MR 295 397 0 0
+MR 390 436 0 0
+MR 196 70 0 0
+MR 221 146 0 0
+MR 251 245 0 0
+MR 283 336 0 0
+MR 319 424 0 0
+ME 15 1 10336   ; command=Edit Facet.../N
+; Start dialog Facet to edit
+DC 4 4 1
+DC 4 5 0
+MR 2 116 0 0
+MR 2 114 0 0
+MR 2 113 0 0
+MR 2 112 0 0
+MR 2 111 0 0
+MR 2 110 0 0
+MR 2 109 0 0
+MR 2 108 0 0
+MR 2 107 0 0
+MR 2 106 0 0
+MR 2 105 0 0
+MR 2 104 0 0
+MR 2 102 0 0
+MR 2 100 0 0
+MR 1 99 0 0
+MR 1 98 0 0
+MR 0 97 0 0
+DI 4 5
+DC 4 5 1
+DS 4 3 1 6
+DI 4 1
+DD 4
+WS 0 78 585 10656
+MR 67 472 0 5
+MR 53 477 0 5
+MR 40 480 0 5
+MR 25 484 0 5
+MR 13 487 0 5
+MR 1 492 0 5
+MR 1 498 0 5
+MR 4 496 0 5
+MR 6 495 0 5
+MR 9 494 0 5
+MR 13 491 0 5
+MR 17 488 0 5
+MR 20 486 0 5
+MR 24 483 0 5
+MR 25 482 0 5
+MR 27 480 0 5
+MR 31 477 0 5
+MR 34 474 0 5
+MR 36 472 0 5
+MR 38 469 0 5
+MR 41 468 0 5
+MR 42 466 0 5
+MR 44 464 0 5
+MR 45 462 0 5
+MR 47 462 0 5
+MR 49 462 0 5
+MR 49 461 0 5
+MR 50 460 0 5
+MR 52 459 0 5
+MR 54 459 0 5
+MR 56 458 0 5
+MR 59 457 0 5
+MR 60 456 0 5
+MR 62 456 0 5
+MR 63 455 0 5
+MR 65 455 0 5
+MR 66 455 0 5
+MR 67 455 0 5
+MR 68 455 0 5
+MR 69 455 0 5
+MR 70 455 0 5
+MR 71 455 0 5
+MR 73 455 0 5
+MR 74 454 0 5
+MR 75 454 0 5
+MR 76 454 0 5
+MR 2 167 0 5
+MR 7 148 0 5
+MR 9 130 0 5
+MR 10 115 0 5
+MR 13 96 0 5
+MR 15 83 0 5
+MR 15 68 0 5
+MR 15 55 0 5
+MR 15 44 0 5
+MR 15 34 0 5
+MR 16 26 0 5
+MR 17 18 0 5
+MR 19 11 0 5
+MR 3 0 0 5
+MR 31 446 0 5
+MR 33 446 0 5
+MR 33 445 0 5
+MR 36 444 0 5
+MR 38 442 0 5
+MR 40 441 0 5
+MR 42 441 0 5
+MR 44 439 0 5
+MR 47 436 0 5
+MR 49 434 0 5
+MR 52 433 0 5
+MR 54 431 0 5
+MR 56 430 0 5
+MR 58 428 0 5
+MR 61 427 0 5
+MR 63 426 0 5
+MR 65 426 0 5
+MR 67 425 0 5
+MR 69 425 0 5
+MR 71 424 0 5
+MR 72 423 0 5
+MR 74 423 0 5
+MR 76 422 0 5
+MR 78 421 0 5
+MR 80 420 0 5
+MR 82 419 0 5
+MR 84 419 0 5
+MR 85 419 0 5
+MR 87 419 0 5
+MR 89 419 0 5
+MR 91 419 0 5
+MR 93 419 0 5
+MR 96 418 0 5
+MR 98 418 0 5
+MR 101 418 0 5
+MR 104 418 0 5
+MR 108 418 0 5
+MR 111 418 0 5
+MR 114 418 0 5
+MR 115 418 0 5
+MR 118 418 0 5
+MR 120 418 0 5
+MR 122 418 0 5
+MR 125 418 0 5
+MR 127 418 0 5
+MR 129 418 0 5
+MR 131 417 0 5
+MR 133 417 0 5
+MR 135 416 0 5
+MR 137 416 0 5
+MR 139 415 0 5
+MR 140 415 0 5
+MR 141 414 0 5
+MR 142 413 0 5
+MR 143 413 0 5
+MR 144 412 0 5
+MR 144 411 0 5
+MR 145 410 0 5
+MR 145 409 0 5
+MR 146 408 0 5
+MR 147 407 0 5
+MR 148 405 0 5
+MR 148 404 0 5
+MR 780 426 0 5
+MR 711 380 0 5
+MR 647 336 0 5
+MR 579 293 0 5
+MR 500 243 0 5
+MR 443 206 0 5
+MR 356 145 0 5
+MR 298 99 0 5
+MR 229 47 0 5
+MR 175 4 0 5
+MR 141 3 0 5
+MR 173 30 0 5
+MR 234 71 0 5
+MR 275 98 0 5
+MR 306 120 0 5
+MR 331 132 0 5
+MR 348 140 0 5
+MR 360 146 0 5
+MR 369 150 0 5
+MR 375 152 0 5
+MR 381 154 0 5
+MR 387 155 0 5
+MR 393 157 0 5
+MR 405 162 0 5
+MR 419 165 0 5
+MR 434 169 0 5
+MR 462 178 0 5
+MR 493 191 0 5
+MR 556 218 0 5
+MR 603 238 0 5
+MR 664 262 0 5
+MR 734 290 0 5
+MR 793 320 0 5
+MR 874 351 0 5
+MR 273 55 0 5
+MR 329 114 0 5
+MR 415 197 0 5
+MR 478 260 0 5
+MR 544 320 0 5
+MR 606 377 0 5
+MR 665 427 0 5
+; Start dialog UNTITLED
+DI 6 5
+DD 6

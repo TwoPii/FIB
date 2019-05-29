@@ -1,0 +1,36 @@
+; Electric VLSI Design System
+; Macro package for SPICE parts
+; Written by: Steven M. Rubin, Static Free Software.
+; (c) Static Free Software 2002.
+; All or a portion of this program is subject to the restrictions
+; contained in a license granted by, and remains the unpublished
+; property of, Static Free Software.
+
+; this next line sets the name of the spice parts library
+var set Y "spiceparts"
+
+; the menu must be called "pmespi"
+menu popup pmespi size 22
+menu popup pmespi header N_("Spice Part")
+bind set popup pmespi message N_("DC Voltage Source")       0 pmespmake DCVoltage
+bind set popup pmespi message N_("AC Voltage Source")       1 pmespmake ACVoltage
+bind set popup pmespi message N_("DC Current Source")       2 pmespmake DCCurrent
+bind set popup pmespi message N_("AC Current Source")       3 pmespmake ACCurrent
+bind set popup pmespi                                       4 -
+bind set popup pmespi message N_("Pulse")                   5 pmespmake Pulse
+bind set popup pmespi message N_("Current Pulse")           6 pmespmake PulseCurrent
+bind set popup pmespi                                       7 -
+bind set popup pmespi message N_("CCCS")                    8 pmespmake CCCS
+bind set popup pmespi message N_("CCVS")                    9 pmespmake CCVS
+bind set popup pmespi message N_("VCCS")                   10 pmespmake VCCS
+bind set popup pmespi message N_("VCVS")                   11 pmespmake VCVS
+bind set popup pmespi message N_("Transmission")           12 pmespmake Transmission
+bind set popup pmespi                                      13 -
+bind set popup pmespi message N_("Transient Analysis")     14 pmespmake AnalysisTransient
+bind set popup pmespi message N_("DC Analysis")            15 pmespmake AnalysisDC
+bind set popup pmespi message N_("AC Analysis")            16 pmespmake AnalysisAC
+bind set popup pmespi                                      17 -
+bind set popup pmespi message N_("Well")                   18 getproto node schematic:Well
+bind set popup pmespi message N_("Substrate")              19 getproto node schematic:Substrate
+bind set popup pmespi message N_("Node Set")               20 pmespmake NodeSet
+bind set popup pmespi message N_("Extension")              21 pmespmake Extension

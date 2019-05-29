@@ -1,0 +1,38 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+entity excep is 						-- gestion de excepciones
+  port (Desb: in std_logic;
+        dirdNA: in std_logic;
+        dirINA: in std_logic;
+        dirIErr: in std_logic;
+        dirdErr: in std_logic;
+        ECoErr: in std_logic;
+        CoMo: in std_logic;
+        CoErr: out std_logic;
+        parar: out std_logic);
+end;
+
+architecture comportamiento of excep is
+
+-- situaciones de error               
+ 
+begin
+
+
+Perror: process (Desb, dirdNA, dirINA, dirIErr, dirdErr, CoErr, CoMo)  
+      
+begin
+    parar <= '0';
+    CoErr <= '0';
+    if (Desb = '1') then parar <= '1'; end if;
+    if (dirdNA = '1') then parar <= '1'; end if;                    
+    if (dirINA = '1') then parar <= '1'; end if;
+    if (dirIErr = '1') then parar <= '1'; end if; 
+    if (dirdErr = '1') then parar <= '1'; end if;
+    if (ECoErr = '1') then CoErr <= '1'; end if;
+    if (CoMo = '1') then parar <= '1'; end if;               
+ end process Perror;
+ 
+end;

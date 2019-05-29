@@ -1,0 +1,50 @@
+
+package campo_co is
+
+-- use work.campo_co.all;
+
+-- Campo codigo de operacion (CO). Se divide en dos trozos de tres bits. Bits Altos y bits Bajos
+-- Bits ALTOS, prefijo ACO
+  constant ACOCERO: integer := 0;
+  constant ACOUNO: integer := 1;
+  constant ACODOS: integer :=2;
+  constant ACOTRES: integer :=3;
+  constant ACOCUATRO: integer :=4;
+  constant ACOCINCO: integer :=5;
+  constant ACOSEIS: integer :=6;
+  constant ACOSIETE: integer :=7;
+
+--Bits BAJOS, prefijo B
+-- CO: Bits BAJOS correspondientes a bits ALTOS = ACOCERO
+  constant BtipoR: integer :=0;                -- SPECIAL, R-Type format 
+  constant BtipoRI: integer :=1;               -- REGIMM,  
+  constant Bj: integer := 2;                   -- J jump
+  constant Bjal: integer := 3;                 -- jal jump and link
+  constant Bbeq: integer :=4;                  -- beq branch if equal
+  constant Bbne: integer := 5;                 -- bne branch if not equal
+  constant Bblez: integer := 6;                -- blez branch if less than or equal zero
+  constant Bbgtz: integer := 7;                -- bgtz branch if greater than zero  
+  
+-- CO: Bits BAJOS correspondientes a bits ALTOS = ACOUNO
+  constant Baddi: integer := 0;                -- addi add immediate
+  constant Baddiu: integer := 1;               -- addiu add immediate unsigned
+  constant Bslti: integer := 2;                -- slti set less than immediate
+  constant Bsltiu: integer := 3;               -- sltiu set less than immediate unsigned
+  constant Bandi: integer := 4;                -- andi and inmmediate
+  constant Bori: integer := 5;                 -- ori or immediate
+  constant Bxori: integer := 6;                -- xori xor immediate
+  constant Blui: integer := 7;                 -- lui load upper immediate
+
+-- CO: Bits BAJOS correspondientes a bits ALTOS = ACOCUATRO
+  constant Blb: integer := 0;                  -- lb load byte
+  constant Blh: integer := 1;                  -- lh load halfword
+  constant Blw: integer := 3;                  -- lw load word
+  constant Blbun: integer := 4;                -- lbu load byte unsigned
+  constant Bdhun: integer := 5;                -- lhu load hafword unsigned
+
+-- CO: Bits BAJOS correspondientes a bits ALTOS = ACOCINCO
+  constant Bsb: integer := 0;                  -- sb store byte
+  constant Bsh: integer := 1;                  -- sh store halfword
+  constant Bsw: integer := 3;                  -- sw store word
+  
+end campo_co;

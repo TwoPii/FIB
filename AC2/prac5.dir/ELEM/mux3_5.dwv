@@ -1,0 +1,20 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.retardos.all;
+
+entity mux3b5 is 
+generic (tam1: natural:=5);
+	port(d0, d1, d2: in std_logic_vector(tam1-1 downto 0);
+		c: in std_logic_vector(1 downto 0);
+		s: out std_logic_vector(tam1-1 downto 0));
+end;
+
+architecture comportamiento of mux3b5 is
+begin
+	with c select
+			s <= d0 after retMUX3b5 when "00",
+				d1 after retMUX3b5 when "01",
+				d2 after retMUX3b5 when "10",
+				(others => '-') after retMUX3b5 when others;
+end;
+

@@ -1,0 +1,93 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+use work.campo_funct.all;
+
+entity decfuncval is									-- validar operandos fuente, instrucciones funct
+	port(INST: in std_logic_vector(31 downto 0);
+		valreg: out std_logic_vector(1 downto 0));		-- bit 1: rs; bit 0: rt
+end;
+
+architecture comportamiento of decfuncval is
+ 
+begin
+
+Pdecfuncval:process(INST)                         -- senyal de entrada INST
+-- campos de la instruccion
+	variable rs:  std_logic_vector(4 downto 0);
+	variable rt:  std_logic_vector(4 downto 0);
+	variable rd:  std_logic_vector(4 downto 0);
+	variable shamt:  std_logic_vector(4 downto 0);
+	variable functA, functB:  std_logic_vector(2 downto 0); 
+               
+	variable EcoopA, EcoopB : integer;
+	variable EfunctA, EfunctB : integer;
+       
+begin
+	rs := INST(25 downto 21);
+	rt := INST(20 downto 16);
+	rd := INST(15 downto 11);
+	shamt := INST(10 downto 6);
+	functA :=INST(5 downto 3);
+	functB :=INST(2 downto 0);
+
+	valreg <= "00";
+
+-- validez de los identificadores de registro fuente       
+	EfunctA := conv_integer(functA);						-- bits ALTOS del campo funct
+		case EfunctA is
+			when AFUCERO =>									-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUCERO
+				EfunctB := conv_integer(functB);
+				case EfunctB is
+					when Bsll | Bsrl | Bsra =>				-- sll shift left logical
+						valreg(0) <= '1';						-- srl shift right logical
+															-- sra shift right arithmetic
+					when Bsllv | Bsrlv | Bsrav =>			-- sllv shift left logical variable
+						valreg(1) <= '1';						-- srlv shift right logical variable
+						valreg(0) <= '1';						-- srav shift right arithmetic variable
+					end case;                                          
+			when AFUUNO =>									-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUUNO
+				EfunctB := conv_integer(functB);
+				case EfunctB is
+					when Bjr =>								-- jr jump register
+						valreg(1) <= '1';
+					when Bjalr =>							-- jalr jump and link register    
+ 						valreg(1) <= '1';
+					when Bmovz =>							-- move conditional zero
+						valreg(1) <= '1';
+						valreg(0) <= '1';						-- valor cero de MoCn si se cumple la condicion
+					when Bmovn =>							-- move conditional no zero
+						valreg(1) <= '1';
+						valreg(0) <= '1';						-- valor cero de MoCn si se cumple la condicion                         
+					when Bsyscall | Bbreak =>				-- syscall, break
+						valreg(1) <= '0';						--  parar <='1' en el otro proceso;
+						valreg(0) <= '0';  
+				end case;
+			when AFUCUATRO =>							-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUCUATRO
+				EfunctB := conv_integer(functB);
+				case EfunctB is 
+					when Badd | Baddu | Bsub | Bsubu | Band | Bor | Bxor | Bnor =>	-- add add
+						valreg(1) <= '1';												-- addu add unsigned
+						valreg(0) <= '1';												-- sub substract
+																					-- subu substract unsigned
+																					-- and and
+																					-- or or
+																					-- xor xor
+																					-- nor nor    
+				end case;
+			when AFUCINCO =>							--funct: Bits BAJOS correspondientes a bits ALTOS = AFUCINCO
+				EfunctB := conv_integer(functB);
+				case EfunctB is 
+					when Bslt | Bsltu =>				-- slt set less than
+						valreg(1) <= '1';					-- sltu set less than unsigned
+						valreg(0) <= '1';
+ 				end case;
+		end case;                           
+            
+end process Pdecfuncval;
+            
+end;
+
+
+ 

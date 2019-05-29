@@ -1,0 +1,26 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity RD1I is							-- registro con inicializacion a cero asincrona
+ 
+  port (reloj, pes, I: in std_logic;		-- pes: senyal de inicializacion
+         e: in std_logic;					-- I: senyal modo burbuja
+         s: out std_logic);
+end;
+
+architecture comportamiento of RD1I is
+  begin
+     process (reloj, pes) begin
+       if pes = '1' then s <= '0' after retREGDES;
+       elsif reloj'event and reloj = '1' then
+          if I ='1' then
+              s <= '0' after retREGDES;
+          else      
+              s <= e after retREGDES;
+          end if;
+       end if;
+     end process;
+end;
+

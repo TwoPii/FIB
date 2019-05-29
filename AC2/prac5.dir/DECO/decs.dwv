@@ -1,0 +1,58 @@
+library IEEE; 
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+use work.campo_co.all;
+use work.campo_rt.all;
+use work.retardos.all;
+
+entity DECS is
+  port(opsec: in std_logic_vector(3 downto 0);
+	   ig: in std_logic;
+	   me: in std_logic;
+	   mR: out std_logic);
+end;
+
+-- circuito EVAL
+-- igual: ig
+-- menor: me
+
+-- validacion de que es una instruccion de secuenciamiento : opsec(3)
+-- los 3 bits menos significativos de opsec: opsec ( 2 downto 0)
+-- son iguales a los 3 bits menos significativos del codigo de operacion
+-- o del camo rt si es del tipo RGIMM
+
+architecture comportamiento of DECS is
+constant sec: integer := 1;
+begin
+ 
+SECUcond :process (opsec, ig, me)
+variable vsecuen, vco: integer;
+begin
+     mR <='0' after retDECS;
+     vsecuen := conv_integer (opsec(3));                 	-- validacion de que es una instruccion de secuenciamiento
+     case vsecuen is
+        when sec =>
+          vco := conv_integer (opsec(2 downto 0));       	-- los 3 bits menos significativos de opsec son iguales 
+                                                        	 -- a los 3 bits menos significativos del codigo de operacion
+                                                         	-- o del camo rt si es del tipo RGIMM
+          case vco  is
+             when Bbltz | Bbltzal  =>                    	-- tipo RGIMM, campo RT
+                              mR <=  me after retDECS;   	-- bltz branch if less than zero
+                                                         	-- bltzal branch if less than zero and link
+             when Bbgez | Bbgezal =>                     	-- tipo RGIMM, campo RT
+                              mR <=  not me after retDECS;          -- bgez branch if greater than or equal zero  
+                                                           			-- bgezal branch if greater than or equal zero and link
+
+             when Bbeq  =>                               	-- tipo I, campo codigo de operacion
+                             mR <= ig after retDECS;                     -- beq branch if equal
+             when Bbne  => 
+                             mR <= not ig after retDECS;                 -- bne branch if not equal
+             when Bblez  => 
+                             mR <= ig or  me after retDECS;              -- blez branch if less than or equal zero
+             when Bbgtz  => 
+                             mR <= not ig and not me after retDECS;      -- bgtz branch if greater than zero
+          end case;                                                               
+     end case;
+end process SECUcond;
+end;

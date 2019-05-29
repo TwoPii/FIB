@@ -1,0 +1,36 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.retardos.all;
+
+library libs;
+use libs.libRiesCortos.all;
+use libs.libReDe.all;
+
+entity LDR is
+	port(reloj, Pcero: in std_logic; 
+		RD, RS: in std_logic;
+		RDAT, RSEC: out std_logic);
+end LDR;
+
+
+architecture estructural of LDR is
+    component rd1	
+		 port (reloj, pes: in std_logic;
+         	e: in std_logic;
+         	s: out std_logic);
+	end component rd1;
+	
+	component andv1n	
+		port(a, b: in std_logic;
+		s: out std_logic);
+	end component andv1n;
+   
+   signal t : std_logic;
+   
+begin
+
+	RDAT <= RD;
+	a: andv1n port map (a => RS, b => RD, s => t);
+	r: rd1 port map (reloj => reloj, pes => Pcero, e => t, s => RSEC);
+	
+end estructural;

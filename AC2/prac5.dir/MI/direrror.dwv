@@ -1,0 +1,16 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+entity direrror is 										-- deteccion de direccion fuera de rango
+generic(tam1: natural := 16);							-- 16 bits mas significativos deben ser cero
+	port(dire: in std_logic_vector(tam1-1 downto 0);
+		direrr: out std_logic);
+end direrror;
+
+architecture comportamiento of direrror is
+begin
+	with dire select
+		direrr <= '0' when x"0000",
+				'1' when others; 
+end comportamiento;

@@ -1,0 +1,51 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+entity simd_sal is
+generic ( tam: natural := 32);
+	port(a, b, s : in std_logic_vector(tam-1 downto 0);
+		control : in std_logic_vector(1 downto 0);
+		r : out std_logic_vector (tam-1 downto 0));
+end simd_sal;
+
+-- Unidad de salida de la alu
+-- crea el vector resultado en funcion de la operacion
+--		control(1)	control(0)
+--				0			0	suma de 32 bits
+--				0			1	resta de 32 bits
+--				1			0	suma simd, 4 grupos de 8 bits
+--				1			1	resta simd, 4 grupos de 8 bits
+
+architecture comportamiento of simd_sal is
+constant cero: std_logic := '0';
+constant uno: std_logic := '1';
+signal c0, c1 : std_logic;
+signal suma, resta, inter, tmp, result : std_logic_vector(2 downto 0);
+signal t1 : std_logic_vector(7 downto 0);
+signal t2,t3,t4 : std_logic_vector(6 downto 0);
+signal tmp2 : std_logic_vector(29 downto 0);
+
+begin
+    c0 <= control(0);
+    c1 <= control(1);
+    suma(0) <= a(7) xor b(7);
+    resta(0) <= a(7) xnor b(7);
+    inter(0) <= suma(0) when c0='0' else resta(0);
+    tmp(0) <= inter(0) xor s(7);
+    result(0) <= s(7) when c1='0' else tmp(0);
+
+    suma(1) <= a(15) xor b(15);
+    resta(1) <= a(15) xnor b(15);
+    inter(1) <= suma(1) when c0='0' else resta(1);
+    tmp(1) <= inter(1) xor s(15);
+    result(1) <= s(15) when c1='0' else tmp(1);
+
+    suma(2) <= a(23) xor b(23);
+    resta(2) <= a(23) xnor b(23);
+    inter(2) <= suma(2) when c0='0' else resta(2);
+    tmp(2) <= inter(2) xor s(23);
+    result(2) <= s(23) when c1='0' else tmp(2);
+
+    r <= (s(31 downto 24) & result(2) & s(22 downto 16) & result(1) & s(14 downto 8) & result(0) & s(6 downto 0));
+
+end comportamiento;

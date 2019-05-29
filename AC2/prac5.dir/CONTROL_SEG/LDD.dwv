@@ -1,0 +1,71 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.retardos.all;
+
+library libs;
+use libs.libRiesgos.all;
+
+entity LDD is
+generic(tam: natural := 5);
+	port(rs, rt : in std_logic_vector(tam-1 downto 0);
+		vrs, vrt : in std_logic;
+		rdA, rdM, rdE : in std_logic_vector(tam-1 downto 0);
+		PBRA, PBRM, PBRE : in std_logic;
+		rsA, rsM,rsE: out std_logic;
+		rtA, rtM, rtE: out std_logic);
+end LDD;
+
+
+architecture estructural of LDD is
+	component cmp	
+		port(a, b: in std_logic_vector(tam-1 downto 0);
+			ig: out std_logic);
+	end component cmp;
+	
+	component and3v	
+		port(a, b, c: in std_logic;
+		s: out std_logic);
+	end component and3v;
+	
+	component andv1n	
+		port(a, b: in std_logic;
+		s: out std_logic);
+	end component andv1n;
+	
+    signal c0, c1, c2, c3, c4, c5, c6, c7 : std_logic;
+    signal t0, t1, t2, t3, t4, t5 : std_logic;
+    signal zeros: std_logic_vector(tam-1 downto 0);
+begin
+    zeros <= (others => '0');
+	sA: cmp port map (a => rs, b => rdA, ig => c0);
+	sM: cmp port map (a => rs, b => rdM, ig => c1);
+	sE: cmp port map (a => rs, b => rdE, ig => c2);
+	tA: cmp port map (a => rt, b => rdA, ig => c3);
+	tM: cmp port map (a => rt, b => rdM, ig => c4);
+	tE: cmp port map (a => rt, b => rdE, ig => c5);
+	zs: cmp port map (a => rs, b => zeros, ig => c6);
+	zt: cmp port map (a => rt, b => zeros, ig => c7);
+	
+	vsA: and3v port map (a => c0, b => vrs, c => PBRA, s => t0);
+	vsM: and3v port map (a => c1, b => vrs, c => PBRM, s => t1);
+	vsE: and3v port map (a => c2, b => vrs, c => PBRE, s => t2);
+	vtA: and3v port map (a => c3, b => vrt, c => PBRA, s => t3);
+	vtM: and3v port map (a => c4, b => vrt, c => PBRM, s => t4);
+	vtE: and3v port map (a => c5, b => vrt, c => PBRE, s => t5);
+	
+	at0: andv1n port map (a => t0, b => c6, s => rsA);
+	at1: andv1n port map (a => t1, b => c6, s => rsM);
+	at2: andv1n port map (a => t2, b => c6, s => rsE);
+	at3: andv1n port map (a => t3, b => c7, s => rtA);
+	at4: andv1n port map (a => t4, b => c7, s => rtM);
+	at5: andv1n port map (a => t5, b => c7, s => rtE);
+--	rsA <= '0';
+--	rsM <= '0';
+--	rsE <= '0';
+		
+--	rtA <= '0';
+--	rtM <= '0';
+--	rtE <= '0';
+
+	
+end estructural;

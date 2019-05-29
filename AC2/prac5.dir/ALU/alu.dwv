@@ -1,0 +1,48 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.retardos.all;
+
+library libs;
+use libs.libalu.all;
+
+entity alu is
+generic(tam: natural := 32);
+	port(a, b : in std_logic_vector(tam-1 downto 0);
+		control : in std_logic_vector(5 downto 0);
+		MoCn : out std_logic;
+		desb: out std_logic;
+		S : out std_logic_vector (tam-1 downto 0));
+end alu;
+
+-- Unidad aritmetico logica
+-- Componentes: sumador, operaciones logicas, desplazamiento
+-- movimiento condicional y comparacion de menor
+-- Las senyales de desbordamiento y movimiento condicional se validan
+
+architecture estructural of alu is
+
+signal ssumador, slogica, sdespla, smovcnd, smenor : std_logic_vector (tam-1 downto 0);
+signal S0, S1, S2 : std_logic_vector (tam-1 downto 0);
+signal menors, nor53: std_logic;
+signal desbalu, desbinst, tMoCn: std_logic;
+			
+begin
+	sumador: sumador port map(a => a, b => b, control => control(1 downto 0), S => ssumador, menor => menors, Desb => desbalu);
+	logica: logica port map(a => a, b => b, control => control(1 downto 0), S => slogica);
+	despla: despla3 port map(a => b,  b => a, control => control(1 downto 0), S => sdespla);    -- la entrada a se desplaza por el valor indicado en b
+	movcnd: movcnd port map(a => a,  b => b, cnt => control(0), MoCn => tMoCn, s => smovcnd);
+	menor: men port map(menors, smenor);
+
+	nor53 <= control(5) nor control(3);
+
+	desbinst <= control(5) and (not control(4)) and (not control(3)) and (not control(2)) and (not control(0));
+	desb <= desbalu and desbinst after retALU;
+ 
+	MoCn <= tMoCn and (not control(5)) and (not control(4)) and control(3) and (not control(2)) and control(1) after retALU;
+		  
+	S0 <= ssumador when control(3) = '0' else smenor;
+	S1 <= a when control(5) = '0' else S0;
+	S2 <= S1 when control(2) = '0' else slogica;
+	S <=  S2  after retALU when nor53 = '0' else sdespla after retALU;
+
+end estructural;

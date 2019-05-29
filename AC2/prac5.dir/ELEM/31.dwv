@@ -1,0 +1,13 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+entity treinuno is 
+generic ( tam1: natural := 5);
+	port(s: out	std_logic_vector(tam1-1 downto 0));
+end treinuno;
+
+architecture comportamiento of treinuno is
+begin
+  s <= "11111";
+end comportamiento;

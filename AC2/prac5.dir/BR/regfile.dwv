@@ -1,0 +1,49 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity BR is              						-- banco de registros, dos puertos de lectura y un puerto de escritura
+generic(tam: natural:=32; tamID: natural:=5);
+	port(reloj: in std_logic;
+		pebr: in std_logic;						-- permiso de escritura
+		IDL1, IDL2, IDE:in std_logic_vector(tamID-1 downto 0);
+		ED: in std_logic_vector(tam-1 downto 0);
+		L1, L2: out std_logic_vector(tam-1 downto 0));
+end; 
+
+architecture comportamiento of BR is
+type ramtype is array (31 downto 0) of std_logic_vector (31 downto 0);
+signal mem: ramtype;
+signal idedecod, IDL1dedecod, IDL2dedecod: std_logic_vector(tamID-1 downto 0); 		-- salida del descodificador IDE
+  
+begin
+
+-- dos puertos de lectura. Se lee en el flanco descendente de la senyal de reloj
+-- un puerto de escritura. Se escribe en el flanco descendente de la senyal de reloj
+-- notemos que aunque se escriba en el registro R0 siempre se lee el valor cero
+
+-- escritura en la banco de registros
+  idedecod <= IDE after retBRDECOIDE;
+BRES: process(reloj) begin
+      if reloj'event and reloj = '0' then
+        if pebr = '1' then mem(conv_integer(idedecod)) <= ED after retBRES;
+        end if;
+      end if;
+ end process BRES;
+ 
+-- lectura en el banco de registros    
+  IDL1dedecod <= IDL1 after retBRDECOIDL;
+  IDL2dedecod <= IDL2 after retBRDECOIDL;
+BRLE:process (reloj) begin
+      if reloj'event and reloj = '0' then
+      	if (conv_integer (IDL1dedecod) = 0) then L1 <= X"00000000" after retBRLE;		-- el registro r0 almacena 0
+      	else L1 <= mem(conv_integer(IDL1dedecod)) after retBRLE;
+      	end if;
+      	if (conv_integer(IDL2dedecod) = 0) then L2 <= X"00000000" after retBRLE;
+      	else L2 <= mem(conv_integer(IDL2dedecod)) after retBRLE;
+      	end if;
+      end if;
+ end process BRLE;
+ 
+end;

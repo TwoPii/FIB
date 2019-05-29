@@ -1,0 +1,304 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.campo_co.all;
+
+use work.retardos.all;
+
+library LogicWorks;
+use LogicWorks.debug.all;
+
+
+entity deco_print_seg_1 is 						-- decodificacion del campo codigo de operacion
+  port (INST: in STD_LOGIC_VECTOR (31 downto 0);
+		reloj: in std_logic;
+		siguefunc: out std_logic;
+		sigueIMM: out std_logic;
+		sigue_e0: out std_logic
+		);
+end;
+
+architecture comportamiento of deco_print_seg_1 is
+
+   function imp_j (INSTdis: in STD_LOGIC_VECTOR(25 downto 0)) return std_logic is
+	begin
+	   writeln ("j      ", conv_integer(unsigned(INSTdis & "00")));
+  end function imp_j;
+
+  function imp_jal (INSTdis: in STD_LOGIC_VECTOR(25 downto 0)) return std_logic is
+	begin
+	   writeln ("jal    ", conv_integer(unsigned(INSTdis & "00")));
+  end function imp_jal;
+
+  function imp_beq (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+		writeln ("beq    ", "r", conv_integer(INSTrs), ", r", conv_integer(INSTrt), ", ", conv_integer(signed(INSTlite)));
+  end function imp_beq;
+
+  function imp_bne (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+		writeln ("bne    ", "r", conv_integer(INSTrs), ", r", conv_integer(INSTrt), ", ", conv_integer(signed(INSTlite)));
+  end function imp_bne;
+
+  function imp_blez (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("blez   ", "r", conv_integer(INSTrs), ", ", conv_integer(signed(INSTlite)));
+	   if not(conv_integer(INSTrt)=0) then
+		  writeln ("ERROR:  ", "campo rt en blez incorrecto. Es distinto de cero:  ",  conv_integer(INSTrt));
+	   end if;
+  end function imp_blez;
+
+  function imp_bgtz (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("bgtz   ", "r", conv_integer(INSTrs), ", ", conv_integer(signed(INSTlite)));
+	   if not(conv_integer(INSTrt)=0) then
+		  writeln ("ERROR:  ", "campo rt en bgtz incorrecto. Es distinto de cero:  ",  conv_integer(INSTrt));
+	   end if;
+  end function imp_bdtz;
+
+
+---------------------------------------------------------------------------------
+
+  function imp_addi (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("addi   ", "r", conv_integer(INSTrt), ", r", conv_integer(INSTrs), ", ", conv_integer(signed(INSTlite)));
+  end function imp_addi;
+
+  function imp_addiu (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("addiu  ", "r", conv_integer(INSTrt), ", r", conv_integer(INSTrs), ", ", conv_integer(signed(INSTlite)));
+  end function imp_addiu;
+
+  function imp_slti (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("slti   ", "r", conv_integer(INSTrt), ", r", conv_integer(INSTrs), ", ", conv_integer(signed(INSTlite)));
+  end function imp_slti;
+
+  function imp_sltiu (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("sltiu  ", "r", conv_integer(INSTrt), ", r", conv_integer(INSTrs), ", ", conv_integer(signed(INSTlite)));
+  end function imp_sltiu;
+
+  function imp_andi (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("andi   ", "r", conv_integer(INSTrt), ", r", conv_integer(INSTrs), ", ", conv_integer(unsigned(INSTlite)));
+  end function imp_andi;
+
+  function imp_ori (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("ori    ", "r", conv_integer(INSTrt), ", r", conv_integer(INSTrs), ", ", conv_integer(unsigned(INSTlite)));
+  end function imp_ori;
+
+  function imp_xori (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("xori   ", "r", conv_integer(INSTrt), ", r", conv_integer(INSTrs), ", ", conv_integer(unsigned(INSTlite)));
+  end function imp_xori;
+
+  function imp_lui (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	  writeln ("lui    ", "r", conv_integer(INSTrt), ", ", conv_integer(unsigned(INSTlite)));
+	  if not(conv_integer(INSTrs)=0) then
+		 writeln ("ERROR:  ", "campo rt en lui incorrecto. Es distinto de cero:  ",  conv_integer(INSTrt));
+	  end if;
+  end function imp_lui;
+------------------------------------------------------------------------------
+
+ function imp_lb (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("lb     ", "r", conv_integer(INSTrt), ", ", conv_integer(signed(INSTlite)), " (", "r", conv_integer(INSTrs), ")");
+  end function imp_lb;
+
+  function imp_lh (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("lh    ", "r", conv_integer(INSTrt), ", ", conv_integer(signed(INSTlite)), " (", "r", conv_integer(INSTrs), ")");
+  end function imp_lh;
+
+  function imp_lw (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("lw     ", "r", conv_integer(INSTrt), ", ", conv_integer(signed(INSTlite)), " (", "r", conv_integer(INSTrs), ")");
+  end function imp_lw;
+
+  function imp_lbun (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("lbu    ", "r", conv_integer(INSTrt), ", ", conv_integer(signed(INSTlite)), " (", "r", conv_integer(INSTrs), ")");
+  end function imp_lbun;
+
+  function imp_lhun (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("lhu    ", "r", conv_integer(INSTrt), ", ", conv_integer(signed(INSTlite)), " (", "r", conv_integer(INSTrs), ")");
+  end function imp_lhun;
+----------------------------------------------------------------------------------
+
+  function imp_sb (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("sb     ", "r", conv_integer(INSTrt), ", ", conv_integer(signed(INSTlite)), " (", "r", conv_integer(INSTrs), ")");
+  end function imp_sb;
+
+  function imp_sh (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("sh     ", "r", conv_integer(INSTrt), ", ", conv_integer(signed(INSTlite)), " (", "r", conv_integer(INSTrs), ")");
+  end function imp_sh;
+
+  function imp_sw (INSTrt: in STD_LOGIC_VECTOR(4 downto 0); INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+	   writeln ("sw     ", "r", conv_integer(INSTrt), ", ", conv_integer(signed(INSTlite)), " (", "r", conv_integer(INSTrs), ")");
+  end function imp_sw;
+----------------------------------------------------------------------------------
+
+begin
+
+pdeco_print:process(reloj, INST)                         -- senyal de entrada INST
+-- campos de la instruccion
+	   variable opA, opB: STD_LOGIC_VECTOR (2 downto 0);
+	   variable rs:  STD_LOGIC_VECTOR (4 downto 0);
+	   variable rt:  STD_LOGIC_VECTOR (4 downto 0);
+
+	   variable EcoopA, EcoopB : integer;
+	   variable EfunctA, EfunctB : integer;
+
+	   variable retu: std_logic;
+
+   begin
+
+	if reloj'event and reloj = '1' then
+	  wait for retREGDES ;
+	  wait for 40 ns;   --esperar a riesgo de datos, 2
+--       writeln("HOLA HOLA");
+	   opA := INST(31 downto 29);
+	   opB := INST(28 downto 26);
+	   rs := INST(25 downto 21);
+	   rt := INST(20 downto 16);
+
+-- control de encaminamiento y permisos de escritura
+	   EcoopA := conv_integer(opA);                    -- bits ALTOS del codigo de operacion
+	   case EcoopA is
+		   when ACOCERO =>
+			   EcoopB := conv_integer(opB);
+			   case EcoopB is
+				 when BtipoR =>
+					siguefunc <= '1';
+					wait for 1ns;
+					siguefunc <= '0';
+
+				 when BtipoRI =>
+					sigueIMM <= '1';
+					wait for 1ns;
+					sigueIMM <= '0';
+
+				 when Bj =>                                     -- J jump
+						 retu:= imp_j (INST(25 downto 0));
+				 when Bjal =>                                   -- jal jump and link
+						 retu:= imp_jal (INST(25 downto 0));
+
+				 when Bbeq =>                            -- beq branch if equal
+						   retu:= imp_beq(rt, rs, INST(15 downto 0));
+
+				 when Bbne =>                                    -- bne branch if not equal
+						   retu:= imp_bne(rt, rs, INST(15 downto 0));
+
+				 when Bblez =>                          -- blez branch if less than or equal zero
+						   retu:= imp_blez(rt, rs, INST(15 downto 0));
+
+				 when Bbgtz =>                          -- bgtz branch if greater than zero
+						   retu:= imp_bgtz(rt, rs, INST(15 downto 0));
+
+				 when others =>
+								writeln ("ERROR:  ", "codigo de operacion  :",  conv_integer(unsigned(INST(31 downto 26))));
+			   end case;
+
+		   when ACOUNO =>
+			   EcoopB := conv_integer(opB);
+				case EcoopB is
+
+				when Baddi =>                                    -- addi add immediate
+						   retu:= imp_addi(rt, rs, INST(15 downto 0));
+
+				when Baddiu =>                                    -- addiu add immediate unsigned
+						   retu:= imp_addiu(rt, rs, INST(15 downto 0));
+
+				when Bslti =>                                      -- slti set less than immediate
+						   retu:= imp_slti(rt, rs, INST(15 downto 0));
+
+				when Bsltiu =>                                     -- sltiu set less than immediate unsigned
+						   retu:= imp_sltiu(rt, rs, INST(15 downto 0));
+
+				when Bandi =>                                     -- andi and inmmediate
+						   retu:= imp_andi(rt, rs, INST(15 downto 0));
+
+				when Bori =>                                      -- ori or immediate
+						   retu:= imp_ori(rt, rs, INST(15 downto 0));
+				when Bxori =>                                     -- xori xor immediate
+						   retu:= imp_xori(rt, rs, INST(15 downto 0));
+
+				when Blui =>                                      -- lui load upper immediate
+						   retu:= imp_lui(rt, INST(25 downto 21), INST(15 downto 0));
+
+				when others =>
+						   writeln ("ERROR:  ", "codigo de operacion  :",  conv_integer(unsigned(INST(31 downto 26))));
+			   end case;
+
+		   when ACOCUATRO =>
+			   EcoopB := conv_integer(opB);
+			   case EcoopB is
+
+				when Blb =>                                       -- lb load byte
+						   retu:= imp_lb(rt, rs, INST(15 downto 0));
+
+				when Blh =>                                       -- lh load halfword
+						   retu:= imp_lh(rt, rs, INST(15 downto 0));
+
+				when Blw =>                                       -- lw load word
+						   retu:= imp_lw(rt, rs, INST(15 downto 0));
+
+				when Blbun =>                                     -- lbu load byte unsigned
+						   retu:= imp_lbun(rt, rs, INST(15 downto 0));
+
+				when Bdhun =>                                     -- lhu load hafword unsigned
+							retu:= imp_lhun(rt, rs, INST(15 downto 0));
+
+
+				when others =>
+						writeln ("ERROR:  ", "codigo de operacion  :",  conv_integer(unsigned(INST(31 downto 26))));
+			   end case;
+
+		   when ACOCINCO =>
+			   EcoopB := conv_integer(opB);
+			   case EcoopB is
+
+				when Bsb =>                                       -- sb store byte
+						   retu:= imp_sb(rt, rs, INST(15 downto 0));
+				when Bsh =>                                       -- sh store halfword
+						   retu:= imp_sh(rt, rs, INST(15 downto 0));
+				when Bsw =>                                       -- sw store word
+						   retu:= imp_sw(rt, rs, INST(15 downto 0));
+				when others =>
+ --                      CoErr <= '1';
+			   end case;
+		   when others =>
+					   writeln ("ERROR:  ", "codigo de operacion  :",  conv_integer(unsigned(INST(31 downto 26))));
+	   end case;
+
+	   EcoopA := conv_integer(opA);                    -- bits ALTOS del codigo de operacion
+	   case EcoopA is
+			 when ACOCERO =>
+			   EcoopB := conv_integer(opB);
+			   case EcoopB is
+				   when Bj |  Bjal | Bbeq | Bbne | Bblez | Bbgtz =>
+					   sigue_e0 <= '1';
+					   wait for 1ns;
+					   sigue_e0 <= '0';
+			   end case;
+			 when ACOUNO | ACOCUATRO | ACOCINCO =>
+					   sigue_e0 <= '1';
+					   wait for 1ns;
+					   sigue_e0 <= '0';
+	   end case;
+
+	 end if;
+end process pdeco_print;
+
+
+end;
+
+
+

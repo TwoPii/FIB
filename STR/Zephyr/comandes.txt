@@ -1,0 +1,32 @@
+  304  wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.10.0/zephyr-sdk-0.10.0-setup.run
+  305  cd <sdk download directory>
+  306  sh zephyr-sdk-0.10.0-setup.run
+  307  export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
+  309  export ZEPHYR_SDK_INSTALL_DIR=<sdk installation directory>
+  310  sudo apt-get install --no-install-recommends git cmake ninja-build gperf \
+  ccache dfu-util device-tree-compiler wget \
+  python3-pip python3-setuptools python3-wheel xz-utils file make gcc \
+  gcc-multilib
+  315  pip3 install --user -r zephyr/scripts/requirements.txt
+  318  pip3 install --user west
+  329  export PATH=/home/alumne/.local/bin:$PATH
+  331  west --version
+  332  west init zephyrproject
+  333  cd zephyrproject/
+  335  west update
+  337  pip3 install --user -r zephyr/scripts/requirements.txt 
+  338  cd zephyr/
+  340  source zephyr-env.sh
+  345  cd samples/hello_world/
+  346  mkdir build && cd build
+  348  pip3 install --user cmake
+  402  export PATH=/home/alumne/.local/bin:$PATH
+  409  export ZEPHYR_SDK_INSTALL_DIR=/opt/zephyr-sdk/
+  410  export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
+  414  source zephyr-env.sh 
+  417  west -v build -b stm32f4_disco samples/hello_world/
+  418  export CMAKE_PROJECT_NAME=hello_world
+  423  cmake -GNinja -DBOARD=stm32f4_disco ..
+  426  ninja
+  427  ninja flash
+

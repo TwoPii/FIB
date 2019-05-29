@@ -1,0 +1,50 @@
+
+base_2_tot_alu.dir/base_2_tot_alu:     file format elf32-tradlittlemips
+
+
+Disassembly of section .inici:
+
+00000000 <.inici>:
+   0:	3c1d0010 	lui	$29,0x10
+   4:	37bdffcc 	ori	$29,$29,0xffcc
+   8:	0c00001d 	jal	74 <main>
+   c:	00000000 	nop
+	...
+  1c:	0000000d 	break
+
+Disassembly of section .text:
+
+00000040 <mult>:
+  40:	000423c0 	sll	$4,$4,0xf
+  44:	30a2ffff 	andi	$2,$5,0xffff
+  48:	24030010 	li	$3,16
+  4c:	30450001 	andi	$5,$2,0x1
+  50:	38a50001 	xori	$5,$5,0x1
+  54:	00003021 	move	$6,$0
+  58:	00021042 	srl	$2,$2,0x1
+  5c:	0085300a 	movz	$6,$4,$5
+  60:	2463ffff 	addiu	$3,$3,-1
+  64:	1460fff9 	bnez	$3,4c <mult+0xc>
+  68:	00c21021 	addu	$2,$6,$2
+  6c:	03e00008 	jr	$31
+  70:	00000000 	nop
+
+Disassembly of section .text.startup:
+
+00000074 <main>:
+  74:	24030080 	li	$3,128
+  78:	3c020010 	lui	$2,0x10
+  7c:	27bdffe8 	addiu	$29,$29,-24
+  80:	ac430000 	sw	$3,0($2)
+  84:	24040080 	li	$4,128
+  88:	24030002 	li	$3,2
+  8c:	3c020010 	lui	$2,0x10
+  90:	ac430004 	sw	$3,4($2)
+  94:	afbf0014 	sw	$31,20($29)
+  98:	0c000010 	jal	40 <mult>
+  9c:	24050002 	li	$5,2
+  a0:	8fbf0014 	lw	$31,20($29)
+  a4:	3c030010 	lui	$3,0x10
+  a8:	ac620008 	sw	$2,8($3)
+  ac:	03e00008 	jr	$31
+  b0:	27bd0018 	addiu	$29,$29,24

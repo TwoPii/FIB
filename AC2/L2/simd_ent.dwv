@@ -1,0 +1,47 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+entity simd_ent is
+generic ( tam: natural := 32);
+	port(a, b : in std_logic_vector(tam-1 downto 0);
+		control : in std_logic_vector(1 downto 0);
+		asmd : out std_logic_vector (tam-1 downto 0);
+		bsmd : out std_logic_vector (tam-1 downto 0));
+end simd_ent;
+
+-- Unidad de entrada de la alu
+-- crear los vectores a y b de entradas en funcion de la operacion
+--		control(1)	control(0)
+--				0			0	suma de 32 bits
+--				0			1	resta de 32 bits
+--				1			0	suma simd, 4 grupos de 8 bits
+--				1			1	resta simd, 4 grupos de 8 bits
+
+architecture comportamiento of simd_ent is
+constant cero: std_logic := '0';
+constant uno: std_logic := '1';
+signal g,d,e,f : std_logic_vector(1 downto 0);
+signal t2,t3,t4 : std_logic_vector(7 downto 0);
+signal mask : std_logic_vector(tam-1 downto 0);
+signal t1 : std_logic_vector(7 downto 0);
+signal simd, c0, c1 : std_logic;
+begin
+
+    c0 <= control(0);
+    c1 <= control(1);
+    
+    simd <= cero when c0='0' else uno;
+
+    g(0) <= a(7) when c1='0' else simd;
+    d(0) <= a(15) when c1='0' else simd;
+    e(0) <= a(23) when c1='0' else simd;
+	     
+  asmd <= a(31 downto 24)& e(0) & a(22 downto 16)& d(0) &a(14 downto 8) & g(0) & a(6 downto 0);
+
+    g(1) <= b(7) when c1='0' else cero;
+    d(1) <= b(15) when c1='0' else cero;
+    e(1) <= b(23) when c1='0' else cero;
+	     
+  bsmd <= b(31 downto 24)& e(1) & b(22 downto 16)& d(1) &b(14 downto 8) & g(1) & b(6 downto 0);
+
+end comportamiento;

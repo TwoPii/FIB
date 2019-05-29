@@ -1,0 +1,3 @@
+Haskell (problemes)
+Interferència de tipus
+Python

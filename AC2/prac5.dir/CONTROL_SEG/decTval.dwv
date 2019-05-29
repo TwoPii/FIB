@@ -1,0 +1,47 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+library libs;
+use work.retardos.all;
+use libs.libRiesgos.all;
+
+entity decTval is 					-- generacion senyales de validacion de identificadores de registros
+  port (INST: in STD_LOGIC_VECTOR (31 downto 0);
+		vrs : out std_logic;
+		vrt : out std_logic);  
+                        
+
+end;
+
+-- decodificadores de senyales de validez; bit 1: rs, bit 0: rt
+-- deco: utiliza el codigo de operacion. Determina si es suficiente o es necesario una decodificacion posterior (muxval)
+-- muxval: codigo de operacion (00), campo funct (01), campo IMM(rt, 10).
+-- funct: utiliza el campo funct.
+-- IMM: utiliza el campo rt.
+
+architecture comportamiento of decTval is
+
+signal  valreg_co, valreg_funct, valreg_imm: std_logic_vector(1 downto 0);
+signal muxval_co, valreg: std_logic_vector(1 downto 0);
+ 
+begin
+-- decodificacion  
+coop: decval port map(INST => INST, valreg => valreg_co, muxval => muxval_co);
+funct: decfuncval port map(INST => INST, valreg => valreg_funct);
+IMM: decIMMval port map(INST => INST, valreg => valreg_imm);
+
+-- seleccion de las senyales de control
+  with muxval_co  select
+      valreg <= valreg_co when "00",
+             valreg_funct when "01",
+             valreg_imm when "10",
+             (others => 'x') when OTHERS;
+
+	vrs <= valreg(1) after retVAL;
+	vrt <= valreg(0) after retVAL;
+              
+end;
+
+
+ 

@@ -1,0 +1,14 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity cuatro is 
+generic(tam: natural := 32);
+	port(tamI: out	std_logic_vector(tam-1 downto 0));
+end cuatro;
+
+architecture comportamiento of cuatro is
+begin
+  tamI <= X"00000004" after retCUATRO;
+end comportamiento;

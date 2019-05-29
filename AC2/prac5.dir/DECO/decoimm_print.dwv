@@ -1,0 +1,104 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.campo_rt.all;
+
+use work.retardos.all;
+
+library LogicWorks;
+use LogicWorks.debug.all;
+
+entity decoIMM_print is 						-- decodificacion de la instrucciones RIMM
+  port (INST: in STD_LOGIC_VECTOR (31 downto 0);
+		sigueIMM: in std_logic;
+		sigue_e2: out std_logic
+		);
+end;
+
+architecture comportamiento of decoIMM_print is
+
+  function imp_bltz (INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+		writeln ("bltz   ", "r", conv_integer(INSTrs), ", ", conv_integer(signed(INSTlite)));
+  end function imp_bltz;
+
+  function imp_bgez (INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+		writeln ("bgez   ", "r", conv_integer(INSTrs), ", ", conv_integer(signed(INSTlite)));
+  end function imp_bgez;
+--------------------------------------------------------------------------------------
+
+  function imp_bltzal (INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+		writeln ("bltzal ", "r", conv_integer(INSTrs), ", ", conv_integer(signed(INSTlite)));
+  end function imp_bltzal;
+
+  function imp_bgezal (INSTrs: in STD_LOGIC_VECTOR(4 downto 0); INSTlite: in STD_LOGIC_VECTOR (15 downto 0)) return std_logic is
+	begin
+		writeln ("bgezal ", "r", conv_integer(INSTrs), ", ", conv_integer(signed(INSTlite)));
+  end function imp_bgezal;
+-----------------------------------------------------------------------------------
+
+begin
+
+PdecoIMM_print:process(sigueIMM)
+variable rs:  std_logic_vector (4 downto 0);
+variable rt:  std_logic_vector (4 downto 0);
+variable rtA: std_logic_vector (1 downto 0);
+variable rtB: std_logic_vector (2 downto 0);
+variable Erta, Ertb: integer;
+
+variable retu: std_logic;
+
+begin
+	if sigueIMM'event and sigueIMM = '1' then
+	rs := INST(25 downto 21);
+	rt := INST(20 downto 16);
+	rtA:= INST(20 downto 19);
+	rtB:= INST (18 downto 16);
+
+
+-- control de encaminamiento y permisos de escritura
+	ErtA := conv_integer(rtA);
+	case ErtA is
+		when ARTCERO =>						 -- rt: Bits BAJOS correspondientes a bits ALTOS = ARTCERO
+			ErtB := conv_integer(rtB);
+			case ErtB is
+							 when Bbltz =>                          -- bltz branch if less than zero
+									retu:= imp_bltz(rs, INST(15 downto 0));
+
+							 when Bbgez =>                          -- bgez branch if greater than or equal zero
+									retu:= imp_bgez(rs, INST(15 downto 0));
+
+							 when others =>
+									  writeln ("ERROR:  ", "codigo de operacion  :",  conv_integer(unsigned(INST(31 downto 26))), " ,  campo funct  :", conv_integer(unsigned(INST(31 downto 26))));
+						  end case;
+		when ARTDOS =>						-- rt: Bits BAJOS correspondientes a bits ALTOS = ARTDOS
+			ErtB := conv_integer(rtB);
+			case ErtB is
+							 when Bbltzal =>                -- bltzal branch if less than zero and link
+									retu:= imp_bltzal(rs, INST(15 downto 0));
+
+							 when Bbgezal =>                -- bgezal branch if greater than or equal zero and link
+									retu:= imp_bgezal(rs, INST(15 downto 0));
+
+							 when others =>
+									  writeln ("ERROR:  ", "codigo de operacion  :",  conv_integer(unsigned(INST(31 downto 26))), " ,  campo funct  :", conv_integer(unsigned(INST(31 downto 26))));
+						  end case;
+
+				 when others =>
+									  writeln ("ERROR:  ", "codigo de operacion  :",  conv_integer(unsigned(INST(31 downto 26))), " ,  campo funct  :", conv_integer(unsigned(INST(31 downto 26))));
+	end case;
+
+	   sigue_e2 <= '1';
+	   wait for 1ns;
+	   sigue_e2 <= '0';
+  end if;
+
+end process PdecoIMM_print;
+
+
+end;
+
+
+

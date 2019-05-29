@@ -1,0 +1,14 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+entity ANDV is 													
+	port(a, b: in std_logic;
+		s: out std_logic);
+end ANDV;
+
+architecture comportamiento of ANDV is
+
+begin
+	s <= a and b;        
+end;

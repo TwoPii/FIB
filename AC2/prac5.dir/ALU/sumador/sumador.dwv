@@ -1,0 +1,38 @@
+library ieee;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+entity sumador is										-- sumador de tam bits
+generic(tam: natural:=32);								-- deteccion de desbordamiento y de menor
+	port(A, B : in std_logic_vector(tam-1 downto 0);	-- control(0)=1 , natural
+		control : in std_logic_vector(1 downto 0);		-- control(1)= 1, resta
+		S : out std_logic_vector(tam-1 downto 0);
+		menor, Desb: out std_logic);
+end sumador;
+
+architecture comportamiento of sumador is
+signal cero, uno: std_logic_vector(tam downto 0);
+
+signal a32, b32 : std_logic;
+signal XC, BS : std_logic_vector(tam downto 0);
+signal op1, op2, op3, tS: std_logic_vector(tam downto 0);
+
+begin
+	cero <= (others => '0');
+	uno <= (others => '1');
+     
+	a32 <= A(tam-1)and(not control(0));
+	op1 <= a32 & A;
+          
+	b32 <= B(tam-1)and(not control(0));
+	BS <= b32 & B;
+	XC <= cero when control(1) = '0' else uno;
+	op2 <= BS xor XC;
+         
+	op3 <= (cero(tam-1 downto 0) & control(1));
+     
+	tS <= op1  + op2 + op3;
+	S <= tS(tam-1 downto 0);
+	menor <= tS(tam);
+	Desb <= (tS(tam) xor tS(tam-1)) and (not control(0));
+end comportamiento;

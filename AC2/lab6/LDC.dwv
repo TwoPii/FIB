@@ -1,0 +1,53 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.retardos.all;
+library libs;
+use libs.libRiesCortos.all;
+use libs.libReDe.all;
+
+entity LDC is
+generic(tam: natural := 5);
+	port(reloj, Pcero: in std_logic; 
+		rsA, rsM,rsE: in std_logic;
+		rtA, rtM, rtE: in std_logic;
+		PBRM: in std_logic;
+		C1L1, C1L2, C2L1, C2L2, C3L1, C3L2: out std_logic);
+end LDC;
+
+
+architecture estructural of LDC is
+
+	component rd1	
+		 port (reloj, pes: in std_logic;
+         	e: in std_logic;
+         	s: out std_logic);
+	end component rd1;
+   
+   component andv	
+		port(a, b: in std_logic;
+		s: out std_logic);
+	end component andv;
+   
+   signal PBRE : std_logic;
+   signal rsAr, rsMr: std_logic;
+   signal rtAr, rtMr:  std_logic;
+
+begin
+	
+	r2: rd1 port map (reloj => reloj, pes => Pcero, e => PBRM, s => PBRE);
+	r3: rd1 port map (reloj => reloj, pes => Pcero, e => rsA, s => rsAr);
+	r4: rd1 port map (reloj => reloj, pes => Pcero, e => rsM, s => rsMr);
+	r5: rd1 port map (reloj => reloj, pes => Pcero, e => rtA, s => rtAr);
+	r6: rd1 port map (reloj => reloj, pes => Pcero, e => rtM, s => rtMr);
+
+	a1: andv port map (a => rsE, b => PBRE, s => C3L1);
+	a2: andv port map (a => rtE, b => PBRE, s => C3L2);
+
+	a5: andv port map (a => rsAr, b => PBRM, s => C1L1);
+	a6: andv port map (a => rtAr, b => PBRM, s => C1L2);
+	
+	a3: andv port map (a => rsMr, b => PBRE, s => C2L1);
+	a4: andv port map (a => rtMr, b => PBRE, s => C2L2);
+
+	
+end estructural;

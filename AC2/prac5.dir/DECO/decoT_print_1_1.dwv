@@ -1,0 +1,48 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+library libs;
+use libs.libdeco.all;
+use work.retardos.all;
+
+entity decoT_print_1_1 is 					-- decodificacion
+  port (INST: in STD_LOGIC_VECTOR (31 downto 0);
+		CP: in STD_LOGIC_VECTOR (31 downto 0);
+		PBRA, PBRM, PBRE: in std_logic;
+		OPMD3A: in std_logic;
+		OPMD34M: in std_logic_vector (1 downto 0);
+		riesgoD: in std_logic;
+		mA, mI, opsec: in std_logic;
+		 reloj: in std_logic
+		 );
+end;
+
+architecture comportamiento of decoT_print_1_1 is
+
+signal siguefunc: std_logic;
+signal sigueIMM: std_logic;
+signal sigue_e0: std_logic;
+signal sigue_e1: std_logic;
+signal sigue_e2: std_logic;
+
+
+begin
+-- decodificador principal
+-- coop_print: deco_print port map(INST => INST, reloj => reloj, siguefunc => siguefunc,  sigueIMM => sigueIMM, sigue_e0 => sigue_e0);
+coop_print: deco_print_seg_1 port map(INST => INST, reloj => reloj, siguefunc => siguefunc,  sigueIMM => sigueIMM, sigue_e0 => sigue_e0);
+
+--decodificador secundario
+funct_print: decofunc_print port map(INST => INST, siguefunc => siguefunc, sigue_e1 => sigue_e1);
+
+--decodificador secundario
+IMM_print: decoIMM_print port map(INST => INST, sigueIMM => sigueIMM, sigue_e2 => sigue_e2);
+
+-- impresion de las etapas
+etapas_print: deco_etapas_print_1_1 port map(CP => CP, PBRA => PBRA, PBRM => PBRM, PBRE => PBRE, OPMD3A => OPMD3A, OPMD34M => OPMD34M,
+		riesgoD => riesgoD,
+		mA => mA, mI => mI, opsec => opsec,
+		sigue_e0 => sigue_e0, sigue_e1 => sigue_e1, sigue_e2 => sigue_e2);
+end;
+
+

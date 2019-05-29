@@ -1,0 +1,53 @@
+
+test_branch.dir/test_branch:     file format elf32-tradlittlemips
+
+
+Disassembly of section .inici:
+
+00000000 <.inici>:
+   0:	3c1d0010 	lui	$29,0x10
+   4:	37bdffcc 	ori	$29,$29,0xffcc
+   8:	0c000010 	jal	40 <main>
+   c:	00000000 	nop
+	...
+  1c:	0000000d 	break
+
+Disassembly of section .text:
+
+00000040 <main>:
+  40:	001ff020 	add	$30,$0,$31
+  44:	241b0008 	li	$27,8
+  48:	0c000027 	jal	9c <main+0x5c>
+  4c:	27f90008 	addiu	$25,$31,8
+  50:	1000000b 	b	80 <main+0x40>
+  54:	00000000 	nop
+  58:	0000000d 	break
+  5c:	00000821 	move	$1,$0
+  60:	03def825 	or	$31,$30,$30
+  64:	03e00008 	jr	$31
+  68:	00000000 	nop
+  6c:	0000000d 	break
+  70:	00195027 	nor	$10,$0,$25
+  74:	1940fff9 	blez	$10,5c <main+0x1c>
+  78:	00000000 	nop
+  7c:	0000000d 	break
+  80:	14000005 	bnez	$0,98 <main+0x58>
+  84:	0339c826 	xor	$25,$25,$25
+  88:	27390001 	addiu	$25,$25,1
+  8c:	1f20fff8 	bgtz	$25,70 <main+0x30>
+  90:	00000000 	nop
+  94:	0000000d 	break
+  98:	0000000d 	break
+  9c:	033bd023 	subu	$26,$25,$27
+  a0:	001fe020 	add	$28,$0,$31
+  a4:	3c1d0000 	lui	$29,0x0
+  a8:	37bd00c0 	ori	$29,$29,0xc0
+  ac:	03a0f809 	jalr	$29
+  b0:	00000000 	nop
+  b4:	03e00008 	jr	$31
+  b8:	00000000 	nop
+  bc:	0000000d 	break
+  c0:	03e0b023 	subu	$22,$31,$0
+  c4:	03e00008 	jr	$31
+  c8:	001cf820 	add	$31,$0,$28
+  cc:	0000000d 	break

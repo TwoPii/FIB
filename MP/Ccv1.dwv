@@ -1,0 +1,143 @@
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity controlador is
+	generic (retardo: time := 4 ns);
+	port (
+		reloj, pcero: in std_logic;
+		-- Pcero senal de puesta a cero
+		LES: in std_logic; -- Interface con el procesador
+		PET: in std_logic;
+		LISTO: out std_logic;
+		AF: in std_logic; -- Interface con modulo campos
+		PED: out std_logic; -- y elementos perifericos
+		PEET: out std_logic;
+		PEV: out std_logic;
+		val: out std_logic;
+		muxL: out std_logic;
+		muxE: out std_logic;
+		MLES: out std_logic; -- Interface con memoria
+		MPET: out std_logic;
+		MLISTO: in std_logic;
+		VEST: out std_logic_vector (3 downto 0)
+		); -- Observacion externa del estado
+end;
+
+architecture comportamiento of controlador is
+	constant UNO : std_logic := '1'; -- Constantes para establecer
+	constant CERO : std_logic := '0'; -- y comprobar valores
+	constant lectura : std_logic := '1';
+	constant escritura : std_logic := '0';
+	constant acierto : std_logic := '1';
+	constant fallo : std_logic := '0';
+	constant PETICION : std_logic := '1';
+	constant NOPETICION : std_logic := '0';
+	-- observacion externa del estado
+	constant VESTDESO: std_logic_vector :="1000"; -- Estado DESO
+	constant VESTESP1: std_logic_vector :="0100"; -- Estado ESP1
+	constant VESTESP2: std_logic_vector :="0010"; -- Estado ESP2
+	constant VESTESP3: std_logic_vector :="0001"; -- Estado ESP3
+
+	type tipoestado is (DES, ESP1, ESP2, ESP3); -- Estados
+	signal estado, prxestado: tipoestado; -- Registro de estado
+
+-- senales temporales en el proceso de salida, sin sincronizar con la senal de reloj,
+-- correspondientes a las PED, PEV y PEET
+	signal TPED: std_logic :='1';
+	signal TPEV: std_logic :='1';
+	signal TPEET: std_logic :='1';
+-- deteccion de flanco ascendente
+	function flanco_ascendente (signal reloj: std_logic) return boolean is
+		variable flanco: boolean:= FALSE;
+		begin
+			flanco := (reloj = '1' and reloj'event);
+			return (flanco);
+	end flanco_ascendente;
+
+begin
+-- registro de estado
+	process (reloj, pcero)
+		begin
+			if pcero = UNO then
+				VEST <= VESTDESO after retardo;
+			elsif (reloj = UNO and reloj'event) then
+				estado <= prxestado after retardo;
+				case prxestado is
+					when DES => VEST <= VESTDESO after retardo;
+					when ESP1 => VEST <= VESTESP1 after retardo;
+					when ESP2 => VEST <= VESTESP2 after retardo;
+					when ESP3 => VEST <= VESTESP3 after retardo;
+				end case;
+			end if;
+	end process;
+
+-- logica de proximo estado
+	process(estado, LES, PET, AF, MLISTO, pcero)
+		begin
+			prxestado <= estado after retardo;
+			if pcero = CERO then
+				case estado is
+					when DES =>
+						if PET = PETICION then
+							if LES = escritura and AF = fallo then
+								prxestado <= ESP3 after retardo;
+							elsif LES = escritura and AF = acierto then
+								prxestado <= ESP2 after retardo;
+							elsif LES = lectura and AF = fallo then
+								prxestado <= ESP1 after retardo;
+							end if;
+						end if;
+					when ESP1 | ESP2 | ESP3 =>
+						if MLISTO = UNO then
+							prxestado <= DES after retardo;
+						end if;
+				end case;
+			else
+				prxestado <= DES after retardo;
+			end if;
+	end process;
+
+-- logica de salida
+	process(estado, LES, PET, AF, MLISTO, pcero)
+		begin
+			LISTO <= UNO after retardo;
+			MPET <= CERO after retardo;
+			TPED <= CERO after retardo;
+			TPEET <= CERO after retardo;
+			TPEV <= CERO after retardo;
+			val <= CERO after retardo;
+			muxL <= CERO after retardo;
+			muxE <= CERO after retardo;
+			MLES <= LES after retardo;
+			if (pcero = CERO) then
+				case estado is
+					when DES =>
+						if PET = PETICION and (AF = fallo or LES = escritura) then
+							LISTO <= CERO after retardo;
+							MPET <= UNO after retardo;
+						end if;
+					when ESP1 =>
+						LISTO <= MLISTO after retardo;
+						MPET <= not MLISTO after retardo;
+						TPED <= MLISTO after retardo;
+						TPEET <= MLISTO after retardo;
+						TPEV <= MLISTO after retardo;
+						val <= UNO after retardo;
+						muxL <= UNO after retardo;
+						muxE <= UNO after retardo;
+					when ESP2 =>
+						LISTO <= MLISTO after retardo;
+						MPET <= not MLISTO after retardo;
+						TPED <= MLISTO after retardo;
+					when ESP3 =>
+						LISTO <= MLISTO after retardo;
+						MPET <= not MLISTO after retardo;
+				end case;
+			end if;
+	end process;
+
+-- actualizacion de cache
+PED <= not (TPED and (not reloj));
+PEET <= not (TPEET and (not reloj));
+PEV <= not (TPEV and (not reloj));
+end;

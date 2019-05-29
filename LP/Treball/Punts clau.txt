@@ -1,0 +1,16 @@
+Ruby
+
+Paradigma o paradigmes de programació que admet el
+llenguatge.
+Compilat o interpretat.
+Sistema de tipus.
+Principals aplicacions.
+Llenguatges similars.
+Algun exemple de codi.
+Altres característiques particulars.
+Descripció de les fonts d’informació emprades
+Useu vàries fonts.
+Busqueu codi.
+Millor si no totes són a internet.
+Avaluació de la qualitat de la informació trobada.
+Referències bibliogràfiques.

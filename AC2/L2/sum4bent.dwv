@@ -1,0 +1,23 @@
+library IEEE;		
+use IEEE.std_logic_1164.all;		
+use IEEE.std_logic_arith.all;		
+		
+entity S4bCa2 is 		
+port (	A: in	std_logic_vector (3 downto 0) ;
+	B: in	std_logic_vector (3 downto 0) ;
+	cen: in	std_logic;
+	SUM: out	std_logic_vector (3 downto 0) ;
+	irre: out	std_logic);
+end S4bCa2;		
+		
+architecture behav of S4bCa2 is		
+constant retardo: time := 60ns;		
+		
+signal SINTER: std_logic_vector (4 downto 0);		
+begin		
+-- Your VHDL code defining the model goes here
+--	SINTER <=  ;
+--	SUM <= ;		
+--	irre <= ;		
+
+end behav;		

@@ -1,0 +1,101 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity CNTLE is                        -- control del acceso a memoria (lectura o escritura y acceso alineado) 
+generic (tam: natural:=32);
+	port(dir: in STD_LOGIC_VECTOR (tam-1 downto 0);
+		control : in std_logic_vector (4 downto 0);
+		dirdNA: out std_logic;
+		dirderr: out std_logic;
+		peb: out STD_LOGIC;
+		sc: out STD_LOGIC_VECTOR (3 downto 0);
+		dirS: out std_logic_vector(13 downto 0));
+end;
+
+architecture comportamiento of CNTLE is 
+-- acceso a memoria: control(4)
+-- lectura / escritura: control(3), escritura =1
+  
+-- tamanyo del acceso a memoria				control(2)	control(1:0)
+--											EnNt		tam 
+constant t1bytes: integer := 0;				-- 0 | 1	00	byte (entero | natural)
+constant t2bytes: integer := 1;				-- 0 | 1	01	2 bytes (entero | natural)
+constant t4bytes: integer :=3;				-- 0		11	4 bytes
+
+constant sc4bytes: std_logic_vector (3 downto 0):= "0000";
+constant sc2bytesB: std_logic_vector (3 downto 0):= "1100"; 
+constant sc2bytesA: std_logic_vector (3 downto 0):= "0011";
+constant scbyte00: std_logic_vector (3 downto 0):= "1110";
+constant scbyte01: std_logic_vector (3 downto 0):= "1101";
+constant scbyte10: std_logic_vector (3 downto 0):= "1011";
+constant scbyte11: std_logic_vector (3 downto 0):= "0111";
+    
+signal dir2bits: std_logic_vector (1 downto 0);
+signal sc1byte, sc2byte, sc12byte: std_logic_vector(3 downto 0);
+signal tdirderr: std_logic;
+  
+begin
+
+	dirS <= dir(15 downto 2) after retCNTLE;								-- indice en un banco
+	dir2bits <= dir(1 downto 0);
+   
+	peb <= control(4) and control(3)and (not dirdNA) after retCNTLE;		-- permiso de escritura. Acceso a memoria
+															
+	with dir(31 downto 16) select
+		tdirderr <= '0' after retCNTLE when x"0010",
+					'1' after retCNTLE when others; 
+	dirderr <= tdirderr and control(4);
+
+   
+	with dir2bits select									-- bits de seleccion de banco
+		sc1byte <= scbyte00 when "00",
+			scbyte01 when "01",
+			scbyte10 when "10",
+			scbyte11 when "11";
+   
+	with dir2bits(1) select
+		sc2byte <= sc2bytesB when '0',
+			sc2bytesA when '1';  
+
+	with control(0) select
+		sc12byte <= sc1byte when '0',
+			sc2byte when '1';  
+                 
+	with control(1) select
+		sc <= sc12byte after retCNTLE when '0',
+			sc4bytes after retCNTLE when '1';  
+                 
+                    
+MDE: process(dir2bits, control)								-- comprobacion de que la direccion
+variable ccontrol, vdir2bits: integer;						-- esta alineada ( bits de menor ponderacion)
+variable vdirdNA: std_logic;
+       
+begin
+       vdirdNA := '0';
+       dirdNA <= '0'; 
+       ccontrol := conv_integer(control(1 downto 0));		-- tamanyo del acceso
+       vdir2bits := conv_integer(dir2bits);
+       case ccontrol is 
+           when t4bytes =>
+                case dir2bits is 
+                     when "01" | "10" | "11" =>				-- no alineada a palabra
+                            vdirdNA := '1';					-- 1, 2, 3
+                     when others => vdirdNA := '0'; 
+                end case;
+           when t2bytes =>
+               case dir2bits is 
+                     when "00" =>							-- no alineada a 2 bytes
+                            vdirdNA := '0';					-- 0
+                      when "10" =>
+                            vdirdNA := '0';
+                      when others => vdirdNA := '1';
+               end case;
+           when t1bytes => vdirdNA := '0';
+           when others  => vdirdNA := '1';
+       end case; 
+       dirdNA <= vdirdNA and control(4) after retCNTLE;		-- acceso a memoria: control(4)             
+     end process;
+  
+end;

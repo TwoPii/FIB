@@ -1,0 +1,27 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+library libs;
+use libs.libalu.all;
+
+entity logica is									-- operaciones logicas: and, or, xor, nor
+generic(tam: natural := 32);
+	port(a, b : in std_logic_vector(tam-1 downto 0);
+		control : in std_logic_vector(1 downto 0);
+		S : out std_logic_vector (tam-1 downto 0));
+end logica;
+
+architecture estructural of logica is
+signal sand, sor, sxor, snor : std_logic_vector (tam-1 downto 0);
+signal S1, S2 : std_logic_vector (tam-1 downto 0);
+			
+begin
+	mand: mand port map(a, b, sand);
+	mor: mor port map(a, b, sor);
+	mxor: mxor port map(a, b, sxor);
+	mnor: mnor port map(a, b, snor);
+	  
+	S1 <= sand when control(0) = '0' else sor;
+	S2 <= sxor when control(0) = '0' else snor;
+	S <=  S1 when control(1) = '0' else S2;
+end estructural;

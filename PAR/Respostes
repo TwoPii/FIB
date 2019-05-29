@@ -1,0 +1,15 @@
+ 
+3.2.2 
+ a) 1 regio paralel·la
+ b) 7 estructures de treball compartides a cada regió paralel·la
+ c) Si, hi ha una part que domina l'execució. Es tracta d'un 72.08% del programa. La φ és de 5053286305/8606523271 = 0.587
+ Per tant, Sinf = 1/(1-φ) = 1/(1-0.587) = 2.421
+ 
+ 3.2.3
+ a) 2 regions paralel·les
+ b) 1 estructura compartida en la primera regió paralel·la i 7 en la segona
+ c) Si, hi ha una part que domina l'execució però és menor, es tracta d'un 8.97% del programa. La φ és de 8624894540/8760476195 = 0.9845
+ Per tant Sinf = 1(1-φ) = 1(1-0.9845) = 64.61
+ 
+ 3.2.4
+ Hi ha temps perdut en la sincronització perquè han de compartir dades entre ells i tenen locks que fan esperar per accedir. La sincronització passa al canviar de tasca paralel·litzable. Es gasta temps en scheduling i fork/join per a unir tots els processos. Passa al final, en el que s'agrupen tots els processos per deixar-ne només un treballant. No, només el primer que executa la part serial abans de poder paralel·litzar tota la resta de programa. Es pot veure al cronograma generat amb la finestra de control window dintre la configuració de state profile en el Paraver.

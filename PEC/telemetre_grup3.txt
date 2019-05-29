@@ -1,0 +1,18 @@
+Telemeters		
+
+https://www.pololu.com/product/3415/specs
+€ 11.95	
+4m 	
+Dark, IR, FOV enorme	
+https://www.pololu.com/file/0J1506/VL53L1X.pdf	
+
+https://www.pololu.com/product/2490/specs	
+€ 9.95	
+2m	
+FOV enorme, dist.	
+https://www.pololu.com/file/0J1187/VL53L0X.pdf	
+
+https://www.seeedstudio.com/Seeedstudio-Grove---TF-Mini-LiDAR-p-2996.html
+€ 34.50	
+12m	preu	
+http://statics3.seeedstudio.com/assets/file/bazaar/product/LiDAR_TF_mini_Datasheet-v1.1.docx					

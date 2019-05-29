@@ -1,0 +1,53 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity FMT is                                             
+	port(literal: in std_logic_vector (15 downto 0);
+		control: in std_logic_vector (1 downto 0);
+		dato : out std_logic_vector (31 downto 0));
+end;
+
+architecture comportamiento of FMT is
+  
+-- formatear literal: extension de signo (load, store), 
+-- extension con ceros (operacioneslogicas) o 
+-- ubicar en los bits altos (lui)
+-- shamt: alinear en bits bajos
+  
+constant extsig: integer :=0;
+constant extcero: integer := 1;
+constant alinshamt: integer := 3;
+constant ubicaraltos: integer := 2;
+
+constant desp16: std_logic_vector(7 downto 0):= x"0f";
+  
+begin
+   
+FMT: process(literal, control)
+	variable vdato: std_logic_vector (15 downto 0);
+	variable vdato27: std_logic_vector (26 downto 0);
+	variable ccontrol: integer;
+	variable cccontrol: std_logic_vector(2 downto 0);
+       
+begin
+
+	cccontrol := '0' & control;
+	ccontrol := conv_integer(cccontrol);                -- la funcion conv_integer no funciona con un vector de 2 bits!!!
+	case ccontrol is
+		when extsig =>
+				vdato := (literal(15)& vdato(14 downto 0))sra conv_integer(desp16);
+				dato <= vdato & literal(15 downto 0) after retFMT;
+		when extcero =>                     
+				vdato := (others => '0');
+				dato <= vdato & literal(15 downto 0) after retFMT;
+		when alinshamt =>
+				vdato27 := (others => '0');
+				dato <= vdato27 & literal(10 downto 6) after retFMT;
+		when ubicaraltos =>                     
+				vdato := (others => '0');
+				dato <= literal(15 downto 0)& vdato after retFMT;
+       end case;
+     end process;
+end;

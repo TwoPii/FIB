@@ -1,0 +1,20 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity PBR is 					-- permiso de escritura
+  port (PBR: in std_logic;
+        MoCn: in std_logic;
+        Desb: in std_logic;
+        PBRA: out std_logic                
+         );
+end;
+
+architecture comportamiento of PBR is
+
+begin
+
+  PBRA <= PBR and (not Desb) and (not MoCn) after retPBR; 
+        
+end;

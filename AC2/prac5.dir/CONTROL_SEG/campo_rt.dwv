@@ -1,0 +1,25 @@
+
+package campo_rt is
+
+-- use work.campo_rt.all;
+
+
+-- Codigo de operacion: Bits ALTOS = ACOCERO, Bits BAJOS = BtipoRI; formato RGIMM (RI). Decodificacion del campo rt
+-- Campo rt. Se divide en dos trozos de dos y tres bits. Bits Altos y bits Bajos
+-- rt: Bits ALTOS, prefijo ART
+  constant ARTCERO: integer := 0;
+  constant ARTDOS: integer := 2;
+
+-- rt: bits BAJOS, prefijo B  
+-- rt: Bits BAJOS correspondientes a bits ALTOS = ARTCERO  
+  constant Bbltz: integer := 0;               -- bltz branch if less than zero
+  constant Bbgez: integer := 1;               -- bgez branch if greater than or equal zero
+  
+-- rt: Bits BAJOS correspondientes a bits ALTOS = ARTDOS   
+  constant Bbltzal: integer := 0;             -- bltzal branch if less than zero and link
+  constant Bbgezal: integer := 1;             -- bgezal branch if greater than or equal zero and link
+
+
+
+end campo_rt;
+

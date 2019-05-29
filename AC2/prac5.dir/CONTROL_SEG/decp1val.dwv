@@ -1,0 +1,93 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+
+use work.campo_co.all;
+
+entity decval is									--  validar operandos fuente, instrucciones codigo de operacion
+	port(INST: in std_logic_vector(31 downto 0);
+		valreg: out std_logic_vector(1 downto 0);		-- bit 1: rs; bit 0: rt
+		muxval : out std_logic_vector(1 downto 0));
+end;
+
+architecture comportamiento of decval is
+ 
+begin
+
+Pdecval:process(INST)								-- senyal de entrada INST
+-- campos de la instruccion
+	variable opA, opB: std_logic_vector(2 downto 0);
+	variable rs:  std_logic_vector(4 downto 0);
+	variable rt:  std_logic_vector(4 downto 0);
+               
+	variable EcoopA, EcoopB : integer;
+	variable EfunctA, EfunctB : integer;
+     
+begin
+	opA := INST(31 downto 29);
+	opB := INST(28 downto 26);
+	rs := INST(25 downto 21);
+	rt := INST(20 downto 16);
+      
+	valreg(1) <= '0';
+	valreg(0) <= '0';
+	muxval <= "00";	
+
+-- validez de los identificadores de registro fuente       
+	EcoopA := conv_integer(opA);							-- bits ALTOS del codigo de operacion
+	case EcoopA is
+		when ACOCERO =>
+			EcoopB := conv_integer(opB);
+			case EcoopB is
+				when BtipoR => 
+					muxval <= "01";
+				when BtipoRI =>   
+                	muxval <= "10";
+				when Bj =>									-- J jump
+           
+				when Bjal =>								-- jal jump and link
+
+				when Bbeq | Bbne =>							-- beq branch if equal
+					valreg(1) <= '1';							-- bne branch if not equal
+					valreg(0) <= '1';
+				when Bblez | Bbgtz =>						-- blez branch if less than or equal zero
+					valreg(1) <= '1';							-- bgtz branch if greater than zero
+					
+			end case;
+		when ACOUNO =>
+			EcoopB := conv_integer(opB);           
+			case EcoopB is
+				when Baddi | Baddiu  =>						-- addi add immediate
+					valreg(1) <= '1';							-- addiu add immediate unsigned
+					                            
+				when Bslti |  Bsltiu =>						-- slti set less than immediate
+					valreg(1) <= '1';							-- sltiu set less than immediate unsigned                   
+				when Bandi | Bori | Bxori =>				-- andi and inmmediate
+					valreg(1) <= '1';							-- ori or immediate
+															-- xori xor immediate
+				when Blui =>								-- lui load upper immediate
+
+			end case;
+		when ACOCUATRO =>
+			EcoopB := conv_integer(opB);
+			case EcoopB is
+				when Blb | Blh | Blw | Blbun | Bdhun =>		-- lb load byte
+					valreg(1) <= '1';							-- lh load halfword
+															-- lw load word
+															-- lbu load byte unsigned
+															-- lhu load hafword unsigned
+			end case;               
+		when ACOCINCO =>
+			EcoopB := conv_integer(opB);
+			case EcoopB is
+				when Bsb | Bsh | Bsw =>						-- sb store byte
+					valreg(1) <= '1';							-- sh store halfword
+					valreg(0) <= '1';							-- sw store word
+			end case;               
+	end case;
+end process Pdecval;
+  
+end;
+
+
+ 

@@ -1,0 +1,22 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.retardos.all;
+
+entity RD1 is							-- registro con inicializacion a cero asincrona
+ 
+  port (reloj, pes: in std_logic;		-- pes: senyal de inicializacion
+         e: in std_logic;
+         s: out std_logic);
+end;
+
+architecture comportamiento of RD1 is
+  begin
+     process (reloj, pes) begin
+       if pes = '1' then s <= '0' after retREGDES;
+       elsif reloj'event and reloj = '1' then
+              s <= e after retREGDES;
+       end if;
+     end process;
+end;
+

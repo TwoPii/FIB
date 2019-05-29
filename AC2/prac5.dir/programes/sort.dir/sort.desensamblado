@@ -1,0 +1,43 @@
+
+sort.dir/sort:     file format elf32-tradlittlemips
+
+
+Disassembly of section .inici:
+
+00000000 <.inici>:
+   0:	3c1d0010 	lui	$29,0x10
+   4:	37bdffcc 	ori	$29,$29,0xffcc
+   8:	0c000010 	jal	40 <main>
+   c:	00000000 	nop
+	...
+  1c:	0000000d 	break
+
+Disassembly of section .text.startup:
+
+00000040 <main>:
+  40:	24030014 	li	$3,20
+  44:	3c020010 	lui	$2,0x10
+  48:	3c090010 	lui	$9,0x10
+  4c:	ac430190 	sw	$3,400($2)
+  50:	24070013 	li	$7,19
+  54:	25290000 	addiu	$9,$9,0
+  58:	00001821 	move	$3,$0
+  5c:	0067202a 	slt	$4,$3,$7
+  60:	01201021 	move	$2,$9
+  64:	1080000c 	beqz	$4,98 <main+0x58>
+  68:	00004021 	move	$8,$0
+  6c:	8c440000 	lw	$4,0($2)
+  70:	8c450004 	lw	$5,4($2)
+  74:	00a4302a 	slt	$6,$5,$4
+  78:	10c00004 	beqz	$6,8c <main+0x4c>
+  7c:	24630001 	addiu	$3,$3,1
+  80:	ac450000 	sw	$5,0($2)
+  84:	ac440004 	sw	$4,4($2)
+  88:	25080001 	addiu	$8,$8,1
+  8c:	0067202a 	slt	$4,$3,$7
+  90:	1480fff6 	bnez	$4,6c <main+0x2c>
+  94:	24420004 	addiu	$2,$2,4
+  98:	1500ffef 	bnez	$8,58 <main+0x18>
+  9c:	24e7ffff 	addiu	$7,$7,-1
+  a0:	03e00008 	jr	$31
+  a4:	00000000 	nop

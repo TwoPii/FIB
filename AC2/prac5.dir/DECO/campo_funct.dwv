@@ -1,0 +1,63 @@
+
+package campo_funct is
+
+-- use work.campo_funct.all;
+
+-- Codigo de operacion: Bits ALTOS = Bits BAJOS = ACOCERO = BtipoR; formato R. Decodificacion del campo funct
+-- Campo funct. Se divide en dos trozos de tres bits. Bits Altos y bits Bajos
+-- Bits ALTOS, prefijo AFU
+  constant AFUCERO: integer := 0;
+  constant AFUUNO: integer:= 1;
+  constant AFUDOS: integer:=2;
+  constant AFUTRES: integer:=3;
+  constant AFUCUATRO: integer:=4;
+  constant AFUCINCO: integer:=5;
+  constant AFUSEIS: integer:=6;
+  constant AFUSIETE: integer:=7;
+     
+-- funct: Bits BAJOS, prefijo B
+-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUCERO
+  constant Bsll: integer := 0;                 -- sll shift left logical
+  constant Bsrl: integer :=2;                  -- srl shift right logical
+  constant Bsra: integer := 3;                 -- sra shift right arithmetic
+  constant Bsllv: integer := 4;                -- sllv shift left logical variable
+  constant Bsrlv: integer := 6;                -- srlv shift right logical variable
+  constant Bsrav: integer :=7;                 -- srav shift right arithmetic variable
+
+-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUUNO
+  constant Bjr: integer := 0;                  -- jr jump register
+  constant Bjalr: integer := 1;                -- jalr jump and link register
+  constant Bmovz: integer := 2;                -- move conditional zero
+  constant Bmovn: integer := 3;                -- move conditional no zero
+  constant Bsyscall: integer := 4;             -- syscall   
+  constant Bbreak: integer := 5;               -- break  
+  
+-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUDOS
+  constant Bmfhi: integer := 0;                -- mfhi move from hi
+  constant Bmthi: integer := 1;                -- mthi move to hi
+  constant Bmflo: integer := 2;                -- mflo move from lo
+  constant Bmtlo: integer := 3;                -- mtlo move to lo
+
+-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUTRES
+  constant Bmult: integer := 0;               -- mult multiply
+  constant Bmultu: integer := 1;              -- multu multily unsigned
+  constant Bdiv: integer := 2;                -- div divide
+  constant Bdivu: integer := 3;               -- div unsigned
+  
+-- funct: Bits BAJOS correspondientes a bits ALTOS = AFUCUATRO
+  constant Badd: integer:= 0;                 -- add add
+  constant Baddu: integer:= 1;                -- addu add unsigned
+  constant Bsub: integer:= 2;                 -- sub substract
+  constant Bsubu: integer:= 3;                -- subu substract unsigned
+  constant Band: integer := 4;                -- and and
+  constant Bor: integer := 5;                 -- or or
+  constant Bxor: integer := 6;                -- xor xor
+  constant Bnor: integer := 7;                -- nor nor
+
+--funct: Bits BAJOS correspondientes a bits ALTOS = AFUCINCO
+  constant Bslt: integer := 2;                -- slt set less than
+  constant Bsltu: integer :=3;                -- sltu set less than unsigned
+
+
+end campo_funct;
+

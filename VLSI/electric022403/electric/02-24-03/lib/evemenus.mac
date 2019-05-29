@@ -1,0 +1,2042 @@
+; Electric VLSI Design System
+; Graphical user interface for EVE: VLSI System
+; Written by: Steven M. Rubin, Static Free Software.
+; (c) Static Free Software 2000.
+; All or a portion of this program is subject to the restrictions
+; contained in a license granted by, and remains the unpublished
+; property of, Static Free Software.
+
+; Keyboard commands (control, unshifted, shifted)
+; ------------------------------------------------------------------------------------
+; Ctrl-A  Select All				a                              A
+; Ctrl-B  Size						b                              B
+; Ctrl-C  Copy						c                              C
+; Ctrl-D  Down Hierarchy			d                              D  Down Hierarchy in Place
+; Ctrl-E  Create export				e                              E  Facet Explorer
+; Ctrl-F  Focus on highlighted		f  Full Arrow Key Movement     F
+; Ctrl-G  Toggle grid				g                              G
+; Ctrl-H  Project management		h  Half Arrow Key Movement     H
+; Ctrl-I  Get Info					i                              I
+; Ctrl-J  Rotate 90 degrees c.c.	j                              J
+; Ctrl-K  Show network				k                              K
+; Ctrl-L  Find text					l  Large Panning Distance      L
+; Ctrl-M  Duplicate					m  Medium Panning Distance     M  Measure Distance
+; Ctrl-N  Edit Facet				n                              N
+; Ctrl-O  Open Library				o                              O
+; Ctrl-P  Peek inside highlighted	p  Pan View Point              P
+; Ctrl-Q  Quit						q  Quarter Arrow Key Movement  Q
+; Ctrl-R  Redo						r  Rotate View Point           R
+; Ctrl-S  Save Library				s  Small Panning Distance      S
+; Ctrl-T  Negated					t                              T
+; Ctrl-U  Up Hierarchy				u                              U
+; Ctrl-V  Paste text				v                              V
+; Ctrl-W  Delete window				w                              W
+; Ctrl-X  Cut text					x                              X
+; Ctrl-Y  Outline Edit				y                              Y
+; Ctrl-Z  Undo						z  Zoom View Point             Z
+; Ctrl-0  Zoom out					0
+; Ctrl-1  Push Selection			1
+; Ctrl-2  Pan down					2
+; Ctrl-3  Pop Selection				3
+; Ctrl-4  Pan left					4
+; Ctrl-5  Center cursor				5
+; Ctrl-6  Pan right					6
+; Ctrl-7  Zoom in					7
+; Ctrl-8  Pan up					8
+; Ctrl-9  Fill Window				9
+
+; -------BUTTON------|-----UNIX------|----Windows----|-----Macintosh----|----------------Command----------------
+; S  Select          |           Left|           Left|               Clk|find port extra-info interactive
+; T  Toggle Select   |Sh-        Left|Sh-        Left|Sh-            Clk|find port comp-interactive
+; A  Select Other    |   Ctr-    Left|   Ctr-    Left|   Ctr-        Clk|find port extra-info more interactive
+; L  Toggle Sel Other|Sh-Ctr-    Left|Sh-Ctr-    Left|Sh-Ctr-        Clk|find port more comp-interactive
+; P  Special Select  |       Met-Left|       Alt-Left|           Opt-Clk|find port extra-info special interactive
+; O  Toggle Sp Select|Sh-   -Met-Left|Sh-    Alt-Left|Sh-        Opt-Clk|find port special comp-interactive
+; N  Sp Sel Another  |   Ctr-Met-Left|   Ctr-Alt-Left|   Ctr-    Opt-Clk|find port extra-info special more interactive
+; X  Tog Sp Sel Other|Sh-Ctr-Met-Left|Sh-Ctr-Alt-Left|Sh-Ctr-    Opt-Clk|find port special more comp-interactive
+; I  Info            |--Double-- Left|--Double-- Left|--Double--     Clk|terminal input b "getinfo" show
+; C  Creation/Tec-Ed |           Rght|           Rght|       Cmd-    Clk|create join-angle / menu dopopup technology edit change
+; R  Rectangle Select|       Met-Rght|       Alt-Rght|       Cmd-Opt Clk|find area-define
+; Z  Rectangle Zoom  |Sh-    Met-Rght|Sh-    Alt-Rght|Sh-    Cmd-Opt Clk|find area-define/window highlight-displayed
+; W  Wire            |Sh-        Rght|Sh-        Rght|Sh-    Cmd-    Clk|create angle
+; F  Name of Selection (S) button
+; G  Name of Creation/Technology Edit (C) button
+;
+; These command interpreter variables are used by the package:
+;    a b c d e   g h i j k l m n
+;    A B C     F G H I     L   N O P Q R S T U V W X   Z
+
+rename getproto pmgetproto
+macbegin getproto no-execute
+pmgetproto %1 %2
+if %1 != "arc" create wait-for-down
+macend
+
+; macro to ensure that there is only 1 node selected.  Sets %b nonzero if so
+macbegin pmonenode no-execute
+var set b 1
+var set a $~c
+if %a == 1 macdone
+var set b 0
+if %a == 0 echo N_("First select one") %1
+if %a > 1 echo N_("Select only one") %1
+macend
+
+; macro to ensure that there is a current facet.  Sets %b zero on error
+macbegin pmgotfacet no-execute
+var set b 1
+var set a $facet:~
+if %ax != x macdone
+var set b 0
+echo N_("Must be editing a facet first")
+macend
+
+macbegin buttonsmac no-execute
+var set S button
+var set T sbutton
+var set A cbutton
+var set L scbutton
+var set P obutton
+var set O sobutton
+var set N cobutton
+var set X scobutton
+var set I dbutton
+var set C mbutton
+var set R mobutton
+var set Z smobutton
+var set W sobutton
+var set M cmbutton
+var set F N_("Button")
+var set G N_("Command-Button")
+macend
+
+macbegin buttonsunix no-execute
+var set S left
+var set T sleft
+var set A cleft
+var set L scleft
+var set P mleft
+var set O smleft
+var set N cmleft
+var set X scmleft
+var set I dleft
+var set C right
+var set R mright
+var set Z smright
+var set W sright
+var set M cright
+var set F N_("Left Button")
+var set G N_("Right Button")
+bind set button forward window down 0.05
+bind set button backward window up 0.05
+bind set button sforward window left 0.05
+bind set button sbackward window right 0.05
+bind set button middle -
+bind set button smiddle -
+macend
+
+macbegin buttonswindows no-execute
+var set S left
+var set T sleft
+var set A cleft
+var set L scleft
+var set P aleft
+var set O saleft
+var set N caleft
+var set X scaleft
+var set I dleft
+var set C right
+var set R aright
+var set Z saright
+var set W sright
+var set M cright
+var set F N_("Left Button")
+var set G N_("Right Button")
+bind set button forward window down 0.05
+bind set button backward window up 0.05
+bind set button sforward window left 0.05
+bind set button sbackward window right 0.05
+macend
+
+if $tool:user.USER_machine == Macintosh buttonsmac
+if $tool:user.USER_machine == MacintoshX buttonsmac
+if $tool:user.USER_machine == UNIX buttonsunix
+if $tool:user.USER_machine == Windows buttonswindows
+
+;******************************* ARROW KEY MOVEMENT *******************************
+
+var set m 1
+var set B 0.3
+
+macbegin movebig no-execute
+var set a $tool:user.USER_grid_bold_spacing[%1]
+if %ax == x var set a 10
+var * a %m
+move %2 %a
+macend
+
+macbegin movehuge no-execute
+var set a $tool:user.USER_grid_bold_spacing[%1]
+if %ax == x var set a 10
+var * a %a
+var * a %m
+move %2 %a
+macend
+
+bind set key left move left ^%m
+bind set key right move right ^%m
+bind set key up move up ^%m
+bind set key down move down ^%m
+bind set key m-left movebig 0 left
+bind set key m-right movebig 0 right
+bind set key m-up movebig 1 up
+bind set key m-down movebig 1 down
+bind set key sleft movebig 0 left
+bind set key sright movebig 0 right
+bind set key sup movebig 1 up
+bind set key sdown movebig 1 down
+bind set key m-sleft movehuge 0 left
+bind set key m-sright movehuge 0 right
+bind set key m-sup movehuge 1 up
+bind set key m-sdown movehuge 1 down
+
+;******************************* TECHNOLOGY CONTROL *******************************
+
+macbegin pmtercmos no-execute
+find constraint-angle 2
+macend
+
+macbegin pmteoff no-execute
+getproto node %1
+if x$~ == x macdone
+terminal input a N_("Export name") port
+if x%a != x telltool user port export %a use %2
+macend
+
+menu popup pmteexpo size 3
+menu popup pmteexpo header N_("Type of Export")
+bind set popup pmteexpo message N_("Wire")                   0 pmteoff schematic:Wire_Pin wire
+bind set popup pmteexpo message N_("Bus")                    1 pmteoff schematic:Bus_Pin bus
+bind set popup pmteexpo message N_("Universal")              2 pmteoff generic:Universal-Pin univ
+
+macbegin pmteartwork no-execute
+menu size 2 12
+bind set menu background red                                 0 0w getproto arc artwork:Solid
+bind set menu background red                                 1 0w getproto arc artwork:Thicker
+bind set menu message N_("Inst.")                            2 0w pmgetproto instance
+bind set menu                                                3 0w getproto Opened-Polygon
+bind set menu                                                4 0w getproto Opened-Thicker-Polygon
+bind set menu                                                5 0w getproto Filled-Triangle
+bind set menu                                                6 0w getproto Filled-Box
+bind set menu                                                7 0w getproto Filled-Polygon
+bind set menu                                                8 0w getproto Filled-Circle
+bind set menu                                                9 0w getproto Pin
+bind set menu                                               10 0w getproto Crossed-Box
+bind set menu                                               11 0w getproto Thick-Circle
+
+bind set menu background red                                 0 1w getproto arc artwork:Dotted
+bind set menu background red                                 1 1w getproto arc artwork:Dashed
+bind set menu message N_("Text")                             2 1w pmespet
+bind set menu                                                3 1w getproto Opened-Dotted-Polygon
+bind set menu                                                4 1w getproto Opened-Dashed-Polygon
+bind set menu                                                5 1w getproto Triangle
+bind set menu                                                6 1w getproto Box
+bind set menu                                                7 1w getproto Closed-Polygon
+bind set menu                                                8 1w getproto Circle
+bind set menu message N_("Export")                           9 1w pmteexpo
+bind set menu                                               10 1w getproto Arrow
+bind set menu                                               11 1w getproto Spline
+find constraint-angle 2
+macend
+
+macbegin pmteschematicd no-execute
+menu size 1 18
+bind set menu message N_("Inst.")                            2 0w pmgetproto instance
+bind set menu                                                3 0w getproto Wire_Pin
+bind set menu                                                4 0w getproto Bus_Pin
+bind set menu                                                5 0w getproto Wire_Con
+bind set menu                                                6 0w getproto Buffer
+bind set menu                                                7 0w getproto And
+bind set menu                                                8 0w getproto Or
+bind set menu                                                9 0w getproto Xor
+bind set menu glyph schematic:Off-Page                      10 0w pmteoff schematic:Off-Page y
+bind set menu                                               11 0w getproto Power
+bind set menu                                               12 0w getproto Ground
+bind set menu                                               13 0w getproto Mux
+bind set menu glyph schematic:Flip-Flop                     14 0w pmemake Flip-Flop 0
+bind set menu glyph schematic:Flip-Flop  message  "0400000" 15 0w pmemake Flip-Flop 0400000
+bind set menu glyph schematic:Flip-Flop  message "01000000" 16 0w pmemake Flip-Flop 01000000
+bind set menu glyph schematic:Flip-Flop  message "01400000" 17 0w pmemake Flip-Flop 01400000
+find constraint-angle 45
+macend
+
+var set Q Transistor
+
+macbegin pmteschematica no-execute
+menu size 2 15
+bind set menu background red                                 0 0w getproto arc schematic:Wire
+bind set menu                                                1 0w getproto node schematic:Wire_Pin
+bind set menu message N_("Spice")                            2 0w pmespi
+bind set menu glyph schematic:Off-Page                       3 0w pmteoff schematic:Off-Page y
+bind set menu glyph schematic:Global-Signal                  4 0w pmteglob
+bind set menu                                                5 0w getproto node schematic:Power 
+bind set menu glyph schematic:Resistor                       6 0w pmemitem Resistor SCHEM_resistance "100"
+bind set menu glyph schematic:Capacitor                      7 0w pmecap 0
+bind set menu glyph schematic:Diode                          8 0w pmedio 0
+bind set menu message N_("4-Port")                           9 0w pmteschtp 4-Port-Transistor
+bind set menu glyph schematic:%Q         message "02400000" 10 0w pmetrnlw 02400000
+bind set menu glyph schematic:%Q         message "03400000" 11 0w pmetrnlw 03400000
+bind set menu glyph schematic:%Q         message "01400000" 12 0w pmetrn 01400000
+bind set menu glyph schematic:%Q                            13 0w pmetrnlw 0
+bind set menu glyph schematic:%Q         message  "0400000" 14 0w pmetrnlw 0400000
+bind set menu background red                                 0 1w getproto arc schematic:Bus
+bind set menu                                                1 1w getproto node schematic:Bus_Pin
+bind set menu message N_("Inst.")                            2 1w pmgetproto instance
+bind set menu                                                3 1w getproto Wire_Con
+bind set menu                                                4 1w getproto node schematic:Switch 
+bind set menu                                                5 1w getproto node schematic:Ground 
+bind set menu glyph schematic:Inductor                       6 1w pmemitem Inductor SCHEM_inductance "100"
+bind set menu glyph schematic:Capacitor  message  "0400000"  7 1w pmecap 0400000
+bind set menu glyph schematic:Diode      message  "0400000"  8 1w pmedio 0400000
+bind set menu message N_("3-Port")                           9 1w pmteschtp Transistor
+bind set menu glyph schematic:%Q         message "03000000" 10 1w pmetrnlw 03000000
+bind set menu glyph schematic:%Q         message "04000000" 11 1w pmetrnlw 04000000
+bind set menu glyph schematic:%Q         message "02000000" 12 1w pmetrn 02000000
+bind set menu glyph schematic:%Q         message "01000000" 13 1w pmetrnlw 01000000
+bind set menu                                               14 1w getproto node schematic:Bbox
+find constraint-angle 45
+macend
+
+macbegin pmteschtp no-execute
+var set Q %1
+pmteschematica
+macend
+
+macbegin pmtefpga no-execute
+menu left size 1 6
+bind set menu message N_("Read Arch.")        textsize 12p background light-blue  5 0w pmtefreadarch
+bind set menu message N_("Read Prims.")       textsize 12p background light-blue  4 0w pmtefreadprims
+bind set menu message N_("See Active")        textsize 12p background red         3 0w pmtefseeact
+bind set menu message N_("Wires: Active")     textsize 12p background red         2 0w pmtefwdisp
+bind set menu message N_("Text: On")          textsize 12p background red         1 0w pmteftdisp
+bind set menu message N_("Edit Pips")         textsize 12p background green       0 0w pmtefeditpips
+offtool drc
+var options ignore
+defnode * locked-primitives
+defnode * instances-locked
+var options track
+var set l active
+macend
+
+macbegin pmtefpgaX no-execute
+defnode * not locked-primitives
+defnode * not instances-locked
+macend
+
+macbegin pmteedit no-execute
+var set i %g
+var set g "tee"
+window normal-cursor %g
+var options ignore
+technology use artwork
+var options track
+menu size 1 16
+bind set menu message N_("TEXT")                     0 0w pmteplat
+bind set menu message N_("ARC")                      1 0w technology edit place-layer circle-arc
+bind set menu message N_("HALF")                     2 0w technology edit place-layer circle-half
+bind set menu glyph artwork:Filled-Circle            3 0w technology edit place-layer circle-filled
+bind set menu glyph artwork:Circle                   4 0w technology edit place-layer circle-outline
+bind set menu glyph artwork:Opened-Thicker-Polygon   5 0w technology edit place-layer lines-far-dotted
+bind set menu glyph artwork:Opened-Dashed-Polygon    6 0w technology edit place-layer lines-dashed
+bind set menu glyph artwork:Opened-Dotted-Polygon    7 0w technology edit place-layer lines-dotted
+bind set menu glyph artwork:Opened-Polygon           8 0w technology edit place-layer lines-solid
+bind set menu glyph artwork:Closed-Polygon           9 0w technology edit place-layer polygon-outline
+bind set menu glyph artwork:Filled-Polygon          10 0w technology edit place-layer polygon-filled
+bind set menu glyph artwork:Crossed-Box             11 0w technology edit place-layer rectangle-crossed
+bind set menu glyph artwork:Box                     12 0w technology edit place-layer rectangle-outline
+bind set menu glyph artwork:Filled-Box              13 0w technology edit place-layer rectangle-filled
+bind set menu message N_("HIGH")                    14 0w technology edit place-layer highlight
+bind set menu message N_("PORT")                    15 0w technology edit place-layer port
+bind set button %S find interactive
+bind set button %C menu dopopup technology edit change
+bind set popup pmtech message N_("Con&vert Library to Technology...") 6 pmteedic
+bind set popup pmtech message N_("Edit Primitive &Node...")          11 pmteedin
+bind set popup pmtech message N_("Edit Primitive &Arc...")           12 pmteedia
+bind set popup pmtech message N_("Edit &Layer...")                   13 pmteedil
+bind set popup pmtech message N_("Edit Ne&xt Primitive")             14 technology edit edit-subsequent
+bind set popup pmtech message N_("Edit &Colors...")                  18 technology edit edit-colors
+bind set popup pmtech message N_("Edit Desi&gn Rules...")            19 technology edit edit-design-rules
+bind set popup pmtech message N_("Edit Varia&bles...")               20 terminal input a X techvars
+bind set popup pmtech message N_("Edit Librar&y Dependencies...")    21 terminal input a X dependentlibs
+bind set popup pmtech message N_("Edit Miscellaneous In&fo")         22 technology edit edit-misc-information
+bind set popup pmtech message N_("Identify Pri&mitive Layers")       23 technology edit identify-layers
+bind set popup pmtech message N_("Iden&tify Ports")                  24 technology edit identify-ports
+bind set popup pmtech message N_("Delete this &Primitive")           26 pmtedelp
+bind set popup pmtenew message N_("New Primitive &Node")              0 pmtenewn
+bind set popup pmtenew message N_("New Primitive &Arc")               1 pmtenewa
+bind set popup pmtenew message N_("New &Layer")                       2 pmtenewl
+bind set popup pmtereo message N_("Reorder Primitive &Nodes")         0 technology edit reorder-nodes
+bind set popup pmtereo message N_("Reorder Primitive &Arcs")          1 technology edit reorder-arcs
+bind set popup pmtereo message N_("Reorder &Layers")                  2 technology edit reorder-layers
+echo N_("Technology editing: use %C to make changes")
+macend
+
+macbegin pmteeditX no-execute
+var set g %i
+window normal-cursor %g
+menu size auto
+bind set button %S find port extra-info interactive
+bind set button %C create angle
+bind set popup pmtech message N_("Con&vert and Edit Technology")   6 pmteedib
+bind set popup pmtech message N_("Edit Primitive &Node...")       11 pmteeder
+bind set popup pmtech message N_("Edit Primitive &Arc...")        12 pmteeder
+bind set popup pmtech message N_("Edit &Layer...")                13 pmteeder
+bind set popup pmtech message N_("Edit Ne&xt Primitive")          14 pmteeder
+bind set popup pmtech message N_("Edit &Colors...")               18 pmteeder
+bind set popup pmtech message N_("Edit Desi&gn Rules...")         19 pmteeder
+bind set popup pmtech message N_("Edit Varia&bles...")            20 pmteeder
+bind set popup pmtech message N_("Edit Librar&y Dependencies...") 21 pmteeder
+bind set popup pmtech message N_("Edit Miscellaneous In&fo")      22 pmteeder
+bind set popup pmtech message N_("Identify Pri&mitive Layers")    23 pmteeder
+bind set popup pmtech message N_("Iden&tify Ports")               24 pmteeder
+bind set popup pmtech message N_("Delete this &Primitive")        26 pmteeder
+bind set popup pmtenew message N_("New Primitive &Node")           0 pmteeder
+bind set popup pmtenew message N_("New Primitive &Arc")            1 pmteeder
+bind set popup pmtenew message N_("New &Layer")                    2 pmteeder
+bind set popup pmtereo message N_("Reorder Primitive &Nodes")      0 pmteeder
+bind set popup pmtereo message N_("Reorder Primitive &Arcs")       1 pmteeder
+bind set popup pmtereo message N_("Reorder &Layers")               2 pmteeder
+echo N_("Leaving technology editing")
+macend
+
+macbegin pmteswitch no-execute
+if %1 == "schematic, analog" technology use schematic
+if %1 == "schematic, analog" macdone
+if %1 == "schematic, digital" technology use schematic
+if %1 == "schematic, digital" macdone
+if %1 != "TECHEDIT" technology use %1
+macend
+
+macbegin pmtenewtech no-execute
+if %1x == x macdone
+if $tech:~ == "fpga" pmtefpgaX
+if %H == "TECHEDIT" pmteeditX
+var options ignore
+pmteswitch %1
+var options track
+; always store current technology here (see "logstartrecord()")
+var set H %1
+menu size auto
+find constraint-angle 90
+if %1 == "artwork" pmteartwork
+if %1 == "efido" find constraint-angle 45
+if %1 == "rcmos" pmtercmos
+if %1 == "schematic, analog" pmteschematica
+if %1 == "schematic, digital" pmteschematicd
+if %1 == "fpga" pmtefpga
+if %1 == "TECHEDIT" pmteedit
+macend
+
+; always call this macro "pmtesetup" (see "us_ensurepropertechnology()")
+macbegin pmtesetup no-execute
+if %1 == generic macdone
+if %1 == %H macdone
+pmtenewtech %1
+macend
+
+;******************************* FILE MENU *******************************
+
+macbegin pmfinew no-execute
+terminal input a N_("New library name") string
+if x%a != x library use %a
+macend
+
+macbegin pmfibin no-execute
+terminal input a blib/N_("Library File") file
+if x%a == x macdone
+library read %a make-current
+pmtesetup $~t
+macend
+
+macbegin pmficlo no-execute
+terminal input a N_("Library to close") library
+if x%a != x library kill %a
+macend
+
+macbegin pmfiwbin no-execute
+library write $library:~
+macend
+
+macbegin pmfisa no-execute
+var set a $library:~.userbits
+var and a 04
+var and library:~.userbits 073
+var or  library:~.userbits 01
+library write $library:~
+var set b $library:~.userbits
+var and b 01
+if %b == 0 macdone
+var or  library:~.userbits %a
+macend
+
+macbegin pmfiprint no-execute
+if $tool:user.USER_machine == Macintosh  library write $library:~ quickdraw
+if $tool:user.USER_machine == MacintoshX library write $library:~ printed-postscript
+if $tool:user.USER_machine == Windows    system print
+if $tool:user.USER_machine == UNIX       library write $library:~ printed-postscript
+macend
+
+macbegin pmfiextr no-execute
+var set b %1
+var |   b N_(" File")
+terminal input a %b file
+if x%a == x macdone
+if %2 != text offtool drc
+library read %a %2 make-current
+macend
+
+macbegin pmfiextsr no-execute
+terminal input a sdf/N_("SDF File") file
+if x%a == x macdone
+library read %a sdf merge $library:~
+macend
+
+macbegin pmfiextw no-execute
+library write $library:~ %2
+macend
+
+menu popup pmfiext size 10
+bind set popup pmfiext message N_("&CIF (Caltech Intermediate Format)")           0 pmfiextr "cif/CIF" cif
+bind set popup pmfiext message N_("&GDS II (Stream)")                             1 pmfiextr "multi-gds/GDSII" gds
+bind set popup pmfiext message N_("&EDIF (Electronic Design Interchange Format)") 2 pmfiextr "edif/EDIF" edif
+bind set popup pmfiext message N_("&VHDL")                                        3 pmfiextr "vhdl/VHDL" vhdl
+bind set popup pmfiext message N_("&LEF (Library Exchange Format)")               4 pmfiextr "lef/LEF" lef
+bind set popup pmfiext message N_("&DEF (Design Exchange Format)")                5 pmfiextr "def/DEF" def
+bind set popup pmfiext message N_("D&XF (AutoCAD)")                               6 pmfiextr "dxf/DXF" dxf
+bind set popup pmfiext message N_("&SDF (Standard Delay Format)")                 7 pmfiextsr
+bind set popup pmfiext message N_("S&UE (Schematic User Environment)")            8 pmfiextr "sue/SUE" sue
+bind set popup pmfiext message N_("&Readable Dump")                               9 pmfiextr "tlib/Dump" text
+
+var set a 13
+if $tool:user.USER_have_cadence == 1 var + a 1
+menu popup pmfiwext size %a
+; &-keys in use: "A CDEFGHI KL   P RS    X  "
+bind set popup pmfiwext message N_("&CIF (Caltech Intermediate Format)")           0 pmfiextw "CIF" cif
+bind set popup pmfiwext message N_("&GDS II (Stream)")                             1 pmfiextw "GDSII" gds
+bind set popup pmfiwext message N_("ED&IF (Electronic Design Interchange Format)") 2 pmfiextw "EDIF" edif
+bind set popup pmfiwext message N_("LE&F (Library Exchange Format)")               3 pmfiextw "LEF" lef
+bind set popup pmfiwext message N_("C&DL (Circuit Design Language)")               4 telltool simulation simulate cdl
+bind set popup pmfiwext message N_("&EAGLE")                                       5 pmfiextw "EAGLE" eagle
+bind set popup pmfiwext message N_("EC&AD")                                        6 pmfiextw "ECAD" ecad
+bind set popup pmfiwext message N_("PAD&S")                                        7 pmfiextw "PADS" pads
+bind set popup pmfiwext message N_("D&XF (AutoCAD)")                               8 pmfiextw "DXF" dxf
+bind set popup pmfiwext message N_("&L")                                           9 pmfiextw "L" l
+bind set popup pmfiwext message N_("&PostScript")                                 10 pmfiextw "PostScript" postscript
+bind set popup pmfiwext message N_("&HPGL")                                       11 pmfiextw "HPGL" hpgl
+bind set popup pmfiwext message N_("&Readable Dump")                              12 pmfiextw "Dump" text
+if $tool:user.USER_have_cadence == 1 bind set popup pmfiwext message N_("S&KILL (Cadence commands)") 13 pmfiextw "SKILL" skill
+
+var set a 9
+if $tool:user.USER_have_cadence == 1 var + a 1
+menu popup pmfiio size %a
+bind set popup pmfiio message N_("Library &Options...")          0 terminal input a x libopt
+bind set popup pmfiio message N_("Cop&yright Options...")        1 terminal input a x copyrightopt
+bind set popup pmfiio message N_("&CIF Options...")              2 terminal input a x cifopt
+bind set popup pmfiio message N_("&GDS II Options...")           3 terminal input a x gdsopt
+bind set popup pmfiio message N_("&EDIF Options...")             4 terminal input a x edifopt
+bind set popup pmfiio message N_("&DEF Options...")              5 terminal input a x defopt
+bind set popup pmfiio message N_("CD&L Options...")              6 terminal input a x cdlopt
+bind set popup pmfiio message N_("D&XF Options...")              7 terminal input a x dxfopt
+bind set popup pmfiio message N_("S&UE Options...")              8 terminal input a x sueopt
+if $tool:user.USER_have_cadence == 1 bind set popup pmfiio message N_("&SKILL Options...")  9 terminal input a x skillopt
+
+var set a 18
+if $tool:user.USER_no_quit_command != 1 var + a 2
+menu popup pmfile size %a
+menu popup pmfile header N_("&File")
+; &-keys in use: "ABC E   I KLMNOPQRST V    "
+bind set popup pmfile message N_("&New Library...")                 0 pmfinew
+bind set popup pmfile message N_("&Open Library...")/O              1 pmfibin
+bind set popup pmfile message N_("&Import")                         2 pmfiext
+bind set popup pmfile message N_("IO Op&tions")                     3 pmfiio
+bind set popup pmfile                                               4 -
+bind set popup pmfile message N_("&Close Library")                  5 pmficlo
+bind set popup pmfile message N_("Sa&ve Library")                   6 pmfiwbin
+bind set popup pmfile message N_("Save Library &As...")             7 pmfisa
+bind set popup pmfile message N_("&Save All Libraries")/S           8 library save
+bind set popup pmfile message N_("&Export")                         9 pmfiwext
+bind set popup pmfile                                              10 -
+bind set popup pmfile message N_("Change Current &Library...")     11 terminal input a x chglibrary
+bind set popup pmfile message N_("List Li&braries")                12 show libraries
+bind set popup pmfile message N_("Rena&me Library...")             13 terminal input a x renamelib
+bind set popup pmfile message N_("Mar&k All Libraries for Saving") 14 library touch
+bind set popup pmfile                                              15 -
+if $tool:user.USER_machine == UNIX bind set popup pmfile message N_("&Print")    16 pmfiprint
+if $tool:user.USER_machine != UNIX bind set popup pmfile message N_("&Print...") 16 pmfiprint
+bind set popup pmfile message N_("P&rint Options...")              17 terminal input a x plot
+if $tool:user.USER_no_quit_command != 1 bind set popup pmfile                       18 -
+if $tool:user.USER_no_quit_command != 1 bind set popup pmfile message N_("&Quit")/Q 19 quit
+
+;******************************* EDIT MENU *******************************
+
+macbegin pmefaci no-execute
+terminal input a N_("Facet to create") facetinst
+if x%a == x macdone
+pmgetproto node %a
+create wait-for-down
+macend
+
+macbegin pmepur no-execute
+terminal input a N_("Pure-layer node to create") purelayer
+if x%a == x macdone
+pmgetproto node %a
+create wait-for-down
+macend
+
+macbegin pmearr no-execute
+terminal input a x array
+if x%a != x telltool user array %a
+macend
+
+menu popup pmemir size 2
+bind set popup pmemir message N_("&Horizontally")  0 mirror h ^%e
+bind set popup pmemir message N_("&Vertically")    1 mirror v ^%e
+
+macbegin pmedorot no-execute
+telltool user rotate %1 %d
+macend
+
+macbegin pmearot no-execute
+terminal input b N_("Number of degrees counterclockwise to rotate")
+if x%b == x macdone
+telltool user rotate %b %d
+macend
+
+macbegin pmepol no-execute
+pmonenode node
+if %b == 0 macdone
+var set a $~.proto.userbits
+if x%a == x var set a 0
+var and a 04000
+if %a == 0 echo N_("Highlighted component cannot hold an outline")
+if %a == 0 macdone
+var set d "about-trace-point"
+var set e "about-trace-point"
+var set h %g
+var set g "pen"
+window normal-cursor %g
+bind set popup pmedit message N_("&Erase Point")               20 node trace delete-point
+bind set popup pmespf message N_("Exit &Outline Edit")/Y        0 pmepolx
+bind set popup pmedit message N_("&Rotate about Point")        15 pmerot
+bind set popup pmedit message N_("&Mirror about Point")        16 pmemir
+bind set popup pminfo message N_("Get Outline &Info")/I         0 terminal input a x trace
+bind set key ^010 node trace delete-point
+bind set key ^0177 node trace delete-point
+bind get j button %S
+bind get k button %C
+bind set button %S find within vertex interactive
+bind set button %T -
+bind set button %A -
+bind set button %L -
+bind set button %P -
+bind set button %C node trace add-point
+bind set button %R -
+bind set button %W -
+bind set button %M -
+bind set key left node trace prev-point
+bind set key right node trace next-point
+bind set key up -
+bind set key down -
+echo N_("OUTLINE EDIT MODE:")
+echo N_("Use %F to select/move point")
+echo N_("Use %G to create point")
+undo clear
+macend
+
+macbegin pmepolx no-execute
+var set g %h
+window normal-cursor %g
+var set d "more sensibly"
+var set e "sensibly"
+bind set popup pmedit message N_("&Erase")                     20 erase
+bind set popup pmespf message N_("&Outline Edit")/Y             0 pmepol
+bind set popup pmedit message N_("&Rotate")                    15 pmerot
+bind set popup pmedit message N_("&Mirror")                    16 pmemir
+bind set popup pminfo message N_("Get &Info")/I                 0 terminal input b "getinfo" show
+bind set key ^010 erase
+bind set key ^0177 erase
+bind set button %S %j
+bind set button %T find port comp-interactive
+bind set button %A find port extra-info more interactive
+bind set button %L find port more comp-interactive
+bind set button %P find port extra-info special interactive
+bind set button %C %k
+bind set button %R find area-define
+bind set button %W create angle
+bind set key left move left ^%m
+bind set key right move right ^%m
+bind set key up move up ^%m
+bind set key down move down ^%m
+echo N_("LEAVING OUTLINE EDIT MODE")
+undo clear
+macend
+
+macbegin pmemake no-execute
+getproto node schematic:%1
+if x$~ == x macdone
+var + ~.userbits %2
+macend
+
+macbegin pmetrnlw no-execute
+pmemake %Q %1
+if x$~ == x macdone
+find down-stack
+var set ~.ATTR_width 2
+var change ~.ATTR_width display 0.5 -1
+var set ~.ATTR_length 2
+var change ~.ATTR_length display -0.5 -1
+find variable ATTR_length
+text size down
+text size down
+find up-stack
+macend
+
+macbegin pmetrn no-execute
+pmemake %Q %1
+if x$~ == x macdone
+var set ~.ATTR_area 10
+var change ~.ATTR_area display 0 -1
+macend
+
+macbegin pmteglob no-execute
+getproto node schematic:Global-Signal
+if x$~ == x macdone
+terminal input a x globsignal
+macend
+
+macbegin pmedio no-execute
+pmemake Diode %1
+if x$~ == x macdone
+var set ~.SCHEM_diode "10" display
+macend
+
+macbegin pmecap no-execute
+pmemake Capacitor %1
+if x$~ == x macdone
+var set ~.SCHEM_capacitance "100M" display
+macend
+
+macbegin pmemitem no-execute
+getproto node schematic:%1
+if x$~ == x macdone
+var set ~.%2 %3 display
+macend
+
+menu popup pmesch size 22
+bind set popup pmesch message N_("&nMOS Transistor")         0 pmetrnlw 0
+bind set popup pmesch message N_("D&MOS Transistor")         1 pmetrnlw 0400000
+bind set popup pmesch message N_("&PMOS Transistor")         2 pmetrnlw 01000000
+bind set popup pmesch message N_("NPN &Transistor")          3 pmetrn 01400000
+bind set popup pmesch message N_("PNP Tr&ansistor")          4 pmetrn 02000000
+bind set popup pmesch message N_("N&JFET Transistor")        5 pmetrnlw 02400000
+bind set popup pmesch message N_("PJ&FET Transistor")        6 pmetrnlw 03000000
+bind set popup pmesch message N_("DME&S Transistor")         7 pmetrnlw 03400000
+bind set popup pmesch message N_("&EMES Transistor")         8 pmetrnlw 04000000
+bind set popup pmesch                                        9 -
+bind set popup pmesch message N_("&Diode")                  10 pmedio 0
+bind set popup pmesch message N_("&Zener Diode")            11 pmedio 0400000
+bind set popup pmesch                                       12 -
+bind set popup pmesch message N_("&Capacitor")              13 pmecap 0
+bind set popup pmesch message N_("E&lectrolytic Capacitor") 14 pmecap 0400000
+bind set popup pmesch                                       15 -
+bind set popup pmesch message N_("&Resistor")               16 pmemitem Resistor SCHEM_resistance "100"
+bind set popup pmesch message N_("&Inductor")               17 pmemitem Inductor SCHEM_inductance "100"
+bind set popup pmesch                                       18 -
+bind set popup pmesch message N_("&Black Box")              19 pmemitem Bbox SCHEM_function "Function"
+bind set popup pmesch message N_("S&witch")                 20 getproto node schematic:Switch
+bind set popup pmesch message N_("&Off-page")               21 getproto node schematic:Off-Page
+
+macbegin pmespmake no-execute
+var set a $lib:%Y
+if %ax == x library read %Y.txt text
+getproto node %Y:%1
+macend
+
+commandfile spiceparts.mac
+
+macbegin pmespet no-execute
+getproto node generic:Invisible-Pin
+if x$~ == x macdone
+size 0 0
+var set ~.ART_message[0] "text" display
+var textedit ~.ART_message in-place
+find clear
+macend
+
+menu popup pmespe size 7
+bind set popup pmespe message N_("&Text (nonlayout)")        0 pmespet
+bind set popup pmespe message N_("Text (&layout)...")        1 terminal input a x placetext
+bind set popup pmespe message N_("&Facet Center")            2 getproto node generic:Facet-Center
+bind set popup pmespe message N_("&Essential Bounds marker") 3 getproto node generic:Essential-Bounds
+bind set popup pmespe message N_("&Coverage Implants")       4 node cover-implant
+bind set popup pmespe message N_("&DRC Exclusion")           5 getproto node generic:DRC-Node
+bind set popup pmespe message N_("&Annular Ring...")         6 terminal input a x annulus
+
+menu popup pmerot size 4
+bind set popup pmerot message N_("90 Degrees Clock&wise")          0 pmedorot 270
+bind set popup pmerot message N_("90 Degrees &Counterclockwise")/J 1 pmedorot 90
+bind set popup pmerot message N_("180 &Degrees")                   2 pmedorot 180
+bind set popup pmerot message N_("&Other...")                      3 pmearot
+
+menu popup pmesiz size 3
+bind set popup pmesiz message N_("&Interactively")/B        0 size corner-fixed
+bind set popup pmesiz message N_("All Selected &Nodes...")  1 size nodes
+bind set popup pmesiz message N_("All Selected &Arcs...")   2 size arcs
+
+menu popup pmesel size 21
+; &-keys in use: "A CDE GH JK  NOP R TU  XY "
+bind set popup pmesel message N_("Sele&ct All")/A           0 find all
+bind set popup pmesel message N_("Select All Like &This")   1 find similar
+bind set popup pmesel message N_("Select All &Easy")        2 find all easy
+bind set popup pmesel message N_("Select All &Hard")        3 find all hard
+bind set popup pmesel message N_("Select Nothin&g")         4 find clear
+bind set popup pmesel                                       5 -
+bind set popup pmesel message N_("Select E&xport...")       6 terminal input a x selectport
+bind set popup pmesel message N_("Select &Node...")         7 terminal input a x selectnode
+bind set popup pmesel message N_("Select A&rc...")          8 terminal input a x selectarc
+bind set popup pmesel message N_("Select Networ&k...")      9 terminal input a x selectnet
+bind set popup pmesel message N_("Deselect All &Arcs")     10 find deselect-arcs
+bind set popup pmesel                                      11 -
+bind set popup pmesel message N_("Make Selected Eas&y")    12 find set-easy-selection
+bind set popup pmesel message N_("Make Selected Har&d")    13 find set-hard-selection
+bind set popup pmesel                                      14 -
+bind set popup pmesel message N_("P&ush Selection")/1      15 find down-stack
+bind set popup pmesel message N_("P&op Selection")/3       16 find up-stack
+bind set popup pmesel                                      17 -
+bind set popup pmesel message N_("Enclosed Ob&jects")      18 find just-objects
+bind set popup pmesel                                      19 -
+bind set popup pmesel message N_("Selection O&ptions...")  20 terminal input a x selectopt
+
+menu popup pmecln size 4
+bind set popup pmecln message N_("Cleanup &Pins")            0 erase clean-up
+bind set popup pmecln message N_("Cleanup Pins &Everywhere") 1 erase clean-up-all
+bind set popup pmecln message N_("Show &Nonmanhattan")       2 find nonmanhattan
+bind set popup pmecln message N_("&Shorten Selected Arcs")   3 arc shorten
+
+; DO NOT REARRANGE MENU ENTRIES WITHOUT FIXING pmepol, pmepolx
+menu popup pmespf size 6
+bind set popup pmespf message N_("&Outline Edit")/Y                0 pmepol
+bind set popup pmespf message N_("&Artwork Color...")              1 terminal input a x artlook
+bind set popup pmespf message N_("&Find Text...")/L                2 terminal input a x find
+bind set popup pmespf message N_("&Change Text Size...")           3 terminal input a x textsize
+bind set popup pmespf message N_("&Name All In Facet")             4 telltool network name-facet-objects
+bind set popup pmespf message N_("Name All In &Library")           5 telltool network name-library-objects
+
+macbegin pmeaset no-execute
+bind set popup pmemov message N_("&Quarter Arrow Key Motion\<")    4 pmeaset Quarter 4 0.25
+bind set popup pmemov message N_("&Half Arrow Key Motion\<")       5 pmeaset Half    5 0.5
+bind set popup pmemov message N_("&Full Arrow Key Motion\<")       6 pmeaset Full    6 1
+var set a ">&"
+var |   a %1
+var |   a N_(" Arrow Key Motion\<")
+bind set popup pmemov message %a %2 pmeaset %1 %2 %3
+var set m %3
+macend
+
+menu popup pmemov size 7
+bind set popup pmemov message N_("&Spread...")                    0 terminal input a x spread
+bind set popup pmemov message N_("&Move Objects By...")           1 move by dialog
+bind set popup pmemov message N_("&Align to Grid")                2 node regrid-facet
+bind set popup pmemov                                             3 -
+bind set popup pmemov message N_("&Quarter Arrow Key Motion\q<")  4 pmeaset Quarter 4 0.25
+bind set popup pmemov message N_("&Half Arrow Key Motion\h<")     5 pmeaset Half    5 0.5
+bind set popup pmemov message N_(">&Full Arrow Key Motion\f<")    6 pmeaset Full    6 1
+
+; DO NOT REARRANGE MENU ENTRIES WITHOUT FIXING pmepol, pmepolx
+menu popup pmedit size 29
+menu popup pmedit header N_("&Edit")
+; &-keys in use: "ABCDEFGHIJ LMN P R TUVW YZ"
+bind set popup pmedit message N_("Ne&w Facet Instance...")  0 pmefaci
+bind set popup pmedit message N_("New Analo&g Part")        1 pmesch
+bind set popup pmedit message N_("New SP&ICE Part")         2 pmespi
+bind set popup pmedit message N_("New Pure-Layer &Node...") 3 pmepur
+bind set popup pmedit message N_("New Special Ob&ject")     4 pmespe
+bind set popup pmedit message N_("New Node Options...")     5 terminal input a "def" defnode
+bind set popup pmedit                                       6 -
+bind set popup pmedit message N_("Cu&t")/X                  7 text cut
+bind set popup pmedit message N_("Cop&y")/C                 8 text copy
+bind set popup pmedit message N_("&Paste")/V                9 text paste
+bind set popup pmedit message N_("Dup&licate")/M           10 duplicate
+bind set popup pmedit                                      11 -
+bind set popup pmedit message N_("&Undo")/Z                12 undo
+bind set popup pmedit message N_("Re&do")/R                13 undo redo
+bind set popup pmedit                                      14 -
+bind set popup pmedit message N_("&Rotate")                15 pmerot
+bind set popup pmedit message N_("&Mirror")                16 pmemir
+bind set popup pmedit message N_("Si&ze")                  17 pmesiz
+bind set popup pmedit message N_("Mo&ve")                  18 pmemov
+bind set popup pmedit                                      19 -
+bind set popup pmedit message N_("&Erase")                 20 erase
+bind set popup pmedit message N_("Erase Geometry")         21 erase geometry
+bind set popup pmedit                                      22 -
+bind set popup pmedit message N_("&Array...")              23 pmearr
+bind set popup pmedit message N_("Insert &Break in Arc")   24 create breakpoint
+bind set popup pmedit message N_("C&hange...")             25 terminal input a x change
+bind set popup pmedit message N_("Cleanup &Facet")         26 pmecln
+bind set popup pmedit message N_("Sele&ction")             27 pmesel
+bind set popup pmedit message N_("Special Function")       28 pmespf
+
+;******************************* FACETS MENU *******************************
+
+macbegin pmfedit no-execute
+terminal input a N_("Facet to edit") editfacet
+macend
+
+macbegin pmfdupv no-execute
+var set a $facet:~
+copyfacet %a %a replace-copy
+macend
+
+macbegin pmfdupf no-execute
+terminal input a N_("New Name:")
+if x%a == x macdone
+var set b $facet:~.cellview.sviewname
+var set c $facet:~.cell.lib
+copyfacet $facet:~ %a replace-copy
+macend
+
+macbegin pmfdwn no-execute
+pmonenode instance
+if %b == 0 macdone
+if $~.proto.primindex != 0 echo N_("Select a facet instance to descend")
+if $~.proto.primindex == 0 editfacet %1
+macend
+
+macbegin pmfpack no-execute
+terminal input a N_("New facet name for packaged layout") string
+if x%a != x package %a
+macend
+
+macbegin pmfrtxt no-execute
+terminal input a text/N_("Text File") file
+if x%a == x macdone
+text read %a
+macend
+
+macbegin pmfwtxt no-execute
+var set b "unknown"
+var set a $facet:~.cellview.viewstate
+if x%a == x var set a 0
+var and a 1
+if %a != 0 var set b $facet:~.cell
+text write %b
+macend
+
+macbegin pmfthis no-execute
+pmgotfacet
+if %b == 0 macdone
+var set a $facet:~
+show facets dates matching %a
+macend
+
+macbegin pmfflist no-execute
+terminal input a text/N_("Facet Information Dump") ofile
+if x%a == x macdone
+show facets file %a dates
+macend
+
+macbegin pmffuse no-execute
+terminal input a N_("Show usage for which facet") facet
+if x%a != x show usage %a
+macend
+
+macbegin pmflstg no-execute
+show facets %1
+editfacet FacetStructure new-window
+macend
+
+macbegin pmfexpa no-execute
+terminal input a N_("Number of Levels Down to Expand")
+if x%a == x macdone
+node expand %a
+macend
+
+macbegin pmfuexpa no-execute
+terminal input a N_("Number of Levels Up to Unexpand")
+if x%a == x macdone
+node not expand %a
+macend
+
+menu popup pmfexp size 3
+bind set popup pmfexp message N_("One Level Down")              0 node expand 1
+bind set popup pmfexp message N_("All the Way")                 1 node expand 999
+bind set popup pmfexp message N_("Specified Amount...")         2 pmfexpa
+
+menu popup pmfuexp size 3
+bind set popup pmfuexp message N_("One Level Up")               0 node not expand 1
+bind set popup pmfuexp message N_("All the Way")                1 node not expand 999
+bind set popup pmfuexp message N_("Specified Amount...")        2 pmfuexpa
+
+menu popup pmfproj size 12
+bind set popup pmfproj message N_("&Check In and Out...")/H     0 telltool project list-facets
+bind set popup pmfproj message N_("&Update")                    1 telltool project update
+bind set popup pmfproj message N_("Check &Out This Facet")      2 telltool project check-out
+bind set popup pmfproj message N_("Check &In This Facet")       3 telltool project check-in
+bind set popup pmfproj                                          4 -
+bind set popup pmfproj message N_("&Add This Facet")            5 telltool project add-facet
+bind set popup pmfproj message N_("&Delete This Facet")         6 telltool project delete-facet
+bind set popup pmfproj message N_("Old &Version of This Facet") 7 telltool project get-old-version
+bind set popup pmfproj                                          8 -
+bind set popup pmfproj message N_("&Set User...")               9 telltool project set-user
+bind set popup pmfproj                                         10 -
+bind set popup pmfproj message N_("&Build Project")            11 telltool project build-project
+
+menu popup pmfinfo size 5
+bind set popup pmfinfo message N_("List &Nodes in this Facet")       0 show facets recursive-nodes
+bind set popup pmfinfo message N_("List Facet &Instances")           1 show facets contained-in-this
+bind set popup pmfinfo message N_("List Facet &Usage...")            2 pmffuse
+bind set popup pmfinfo message N_("Graphically, Entire Library")     3 pmflstg graphically
+bind set popup pmfinfo message N_("Graphically, From Current Facet") 4 pmflstg from-here-graphically
+
+menu popup pmfacets size 30
+menu popup pmfacets header N_("Fa&cets")
+; &-keys in use: "ABCDEFGHIJKL NOP RSTUVWXY "
+bind set popup pmfacets message N_("&Edit Facet...")/N               0 pmfedit
+bind set popup pmfacets message N_("De&lete Facets...")              1 terminal input a x delfacet
+bind set popup pmfacets message N_("Cross-Librar&y Copy...")         2 terminal input a x copyfacet
+bind set popup pmfacets message N_("Duplic&ate Current Facet...")    3 pmfdupf
+bind set popup pmfacets message N_("Rename &Cell...")                4 terminal input a x renamecell
+bind set popup pmfacets message N_("Pro&ject Management")            5 pmfproj
+bind set popup pmfacets                                              6 -
+bind set popup pmfacets message N_("&Facet Options...")              7 terminal input a x facetinfo
+bind set popup pmfacets message N_("Facet E&xplorer...")\E           8 window explore
+bind set popup pmfacets                                              9 -
+bind set popup pmfacets message N_("Descri&be this Facet")          10 pmfthis
+bind set popup pmfacets message N_("&General Facet Lists...")       11 terminal input a x facetlist
+bind set popup pmfacets message N_("Special Facet L&ists")          12 pmfinfo
+bind set popup pmfacets                                             13 -
+bind set popup pmfacets message N_("&Down Hierarchy")/D             14 pmfdwn
+bind set popup pmfacets message N_("Down &Hierarchy in Place")\D    15 pmfdwn in-place
+bind set popup pmfacets message N_("&Up Hierarchy")/U               16 outhier
+bind set popup pmfacets                                             17 -
+bind set popup pmfacets message N_("Expand Facet In&stances")       18 pmfexp
+bind set popup pmfacets message N_("U&nexpand Facet Instances")     19 pmfuexp
+bind set popup pmfacets message N_("Loo&k Inside Highlighted")/P    20 window peek
+bind set popup pmfacets                                             21 -
+bind set popup pmfacets message N_("&Package into Facet...")        22 pmfpack
+bind set popup pmfacets message N_("Extrac&t Facet Instance")       23 yanknode
+bind set popup pmfacets                                             24 -
+bind set popup pmfacets message N_("New &Version of Current Facet") 25 pmfdupv
+bind set popup pmfacets message N_("Delete Unused &Old Versions")   26 library purge
+bind set popup pmfacets                                             27 -
+bind set popup pmfacets message N_("&Read Text Facet...")           28 pmfrtxt
+bind set popup pmfacets message N_("&Write Text Facet...")          29 pmfwtxt
+
+;******************************* ARC MENU *******************************
+
+menu popup pmarc size 17
+menu popup pmarc header N_("&Arc")
+; &-keys in use: "ABCDEFGH     NO  R TUV    "
+bind set popup pmarc message N_("&Rigid")                 0 arc rigid
+bind set popup pmarc message N_("&Non-Rigid")             1 arc not rigid
+bind set popup pmarc message N_("&Fixed-angle")           2 arc fixed-angle
+bind set popup pmarc message N_("Not Fixed-&angle")       3 arc not fixed-angle
+bind set popup pmarc                                      4 -
+bind set popup pmarc message N_("Ne&gated")/T             5 arc toggle negated
+bind set popup pmarc message N_("&Directional")           6 arc toggle directional
+bind set popup pmarc message N_("&Ends-extend")           7 arc toggle ends-extend
+bind set popup pmarc message N_("Re&verse")               8 arc reverse
+bind set popup pmarc message N_("Skip &Head")             9 arc toggle skip-head
+bind set popup pmarc message N_("Skip &Tail")            10 arc toggle skip-tail
+bind set popup pmarc                                     11 -
+bind set popup pmarc message N_("New Arc &Options...")   12 terminal input a "def" defarc
+bind set popup pmarc                                     13 -
+bind set popup pmarc message N_("Curve thro&ugh Cursor") 14 arc curve interactive
+bind set popup pmarc message N_("Curve a&bout Cursor")   15 arc center interactive
+bind set popup pmarc message N_("Remove &Curvature")     16 arc not curve
+
+;******************************* EXPORT MENU *******************************
+
+macbegin pmpexp no-execute
+pmonenode node
+if %b == 0 macdone
+terminal input a N_("Export name") port
+if x%a != x telltool user port export %a
+macend
+
+macbegin pmpsync no-execute
+terminal input a N_("Library with exports") library
+if x%a == x macdone
+port synchronize-library %a
+macend
+
+menu popup pmport size 20
+menu popup pmport header N_("Ex&port")
+; &-keys in use: "  CDE  H   LMNOP RST   X Z"
+bind set popup pmport message N_("&Create Export...")/E                  0 pmpexp
+bind set popup pmport                                                    1 -
+bind set popup pmport message N_("Re-Export &Everything")                2 port re-export-all
+bind set popup pmport message N_("Re-Export &Highlighted")               3 port highlighted-re-export
+bind set popup pmport message N_("Re-Export &Power and Ground")          4 port power-ground-re-export
+bind set popup pmport                                                    5 -
+bind set popup pmport message N_("&Delete Export")                       6 port not export
+bind set popup pmport message N_("De&lete All Exports on Highlighted")   7 port not export all
+bind set popup pmport message N_("Delete E&xports in Area")              8 port not export geometry
+bind set popup pmport message N_("&Move Export")                         9 port move
+bind set popup pmport message N_("&Rename Export...")                   10 terminal input a x renameexport
+bind set popup pmport                                                   11 -
+bind set popup pmport message N_("Summari&ze Exports")                  12 show ports
+bind set popup pmport message N_("Lis&t Exports")                       13 show ports all
+bind set popup pmport message N_("&Show Exports")                       14 port identify-facet
+bind set popup pmport message N_("Port and Export &Options...")         15 terminal input a X labels
+bind set popup pmport                                                   16 -
+bind set popup pmport message N_("Show Ports on &Node")                 17 port identify-node
+bind set popup pmport                                                   18 -
+bind set popup pmport message N_("&Add Exports from Library...")        19 pmpsync
+
+;******************************* VIEW MENU *******************************
+
+macbegin pmvnewv no-execute
+terminal input a "VIEW" newview
+if x%a != x telltool user view new %a
+macend
+
+macbegin pmvchgv no-execute
+pmgotfacet
+if %b == 0 macdone
+var set a $facet:~
+var set b N_("New view for facet ")
+var |   b %a
+terminal input a %b view
+if x%a != x view change $facet:~ %a
+macend
+
+macbegin pmvevie no-execute
+var set a $facet:~.cell.lib
+if x%a == x macdone
+var |   a ":"
+var |   a $facet:~.cell.cellname
+var |   a %1
+var set c $facet:%a
+var |   c %2
+if x%c == x echo N_("Facet does not exist")
+if x%c != x editfacet %a new-window non-redundant
+macend
+
+macbegin pmvemsch no-execute
+var set b $facet:~.cell.lib
+if %bx == x macdone
+terminal input a N_("Page number")
+if x%a == x macdone
+var |   b ":"
+var |   b $facet:~.cell.cellname
+var |   b "{p"
+var |   b %a
+var |   b "}"
+var set c $facet:%b
+var |   c %1
+if x%c == x echo N_("Facet does not exist")
+if x%c != x view new schematic-page-%a
+if x%c != x editfacet %b new-window non-redundant
+macend
+
+macbegin pmveoth no-execute
+var set b $facet:~.cell.lib
+if %bx == x macdone
+terminal input a N_("Other view to edit") view
+if x%a == x macdone
+var |   b ":"
+var |   b $facet:~.cell.cellname
+var |   b "{"
+var |   b %a
+var |   b "}"
+var set c $facet:%b
+var |   c %1
+if x%c == x echo N_("That view of the current facet does not exist")
+if x%c != x editfacet %b new-window non-redundant
+macend
+
+macbegin pmvfra no-execute
+view frame %1 %2
+window all-displayed
+macend
+
+macbegin pmvnlay no-execute
+terminal input a N_("Convert to new technology") technology
+if x%a != x technology convert %a
+macend
+
+macbegin pmvnic no-execute
+var set a $facet:~.cell.lib
+if %ax == x macdone
+copyfacet $facet:~ "{ic}"
+create icon
+macend
+
+macbegin pmvnsk no-execute
+var set a $facet:~.cell.lib
+if %ax == x macdone
+copyfacet $facet:~ "{sk}" show-copy
+macend
+
+macbegin pmvvhdl no-execute
+var set a $facet:~.cell.cellname
+if %ax == x macdone
+var |   a "{vhdl}"
+telltool vhdl-compiler make-vhdl
+var set b $facet:%a
+if %bx == x macdone
+editfacet %a new-window
+macend
+
+menu popup pmview size 24
+menu popup pmview header N_("&View")
+; &-keys in use: "A CDEFGHI KLMNOP RSTUVW Y "
+bind set popup pmview message N_("&New View Type...")                   0 pmvnewv
+bind set popup pmview message N_("D&elete View Type...")                1 terminal input a x delview
+bind set popup pmview message N_("Chan&ge Facet's View...")             2 pmvchgv
+bind set popup pmview                                                   3 -
+bind set popup pmview message N_("&Frame Options...")                   4 terminal input a x frameopt
+bind set popup pmview message N_("I&con Options...")                    5 terminal input a x iconopt
+bind set popup pmview                                                   6 -
+bind set popup pmview message N_("Edit La&yout View")                   7 pmvevie "{lay}"
+bind set popup pmview message N_("Edit Schema&tic View")                8 pmvevie "{sch}"
+bind set popup pmview message N_("Edit &Multi-Page Schematic View...")  9 pmvemsch
+bind set popup pmview message N_("Edit Ic&on View")                    10 pmvevie "{ic}"
+bind set popup pmview message N_("Edit V&HDL View")                    11 pmvevie "{vhdl}"
+bind set popup pmview message N_("Edit Document&ation View")           12 pmvevie "{doc}"
+bind set popup pmview message N_("Edit S&keleton View")                13 pmvevie "{sk}"
+bind set popup pmview message N_("Edit Other Vie&w...")                14 pmveoth
+bind set popup pmview                                                  15 -
+bind set popup pmview message N_("Make Layo&ut View...")               16 pmvnlay
+bind set popup pmview message N_("Make &Schematic View")               17 technology convert schematic
+bind set popup pmview message N_("Make Multi-&Page Schematic View...") 18 pmvemsch x
+bind set popup pmview message N_("Make &Icon View")                    19 pmvnic
+bind set popup pmview message N_("Make &VHDL View")                    20 pmvvhdl
+bind set popup pmview message N_("Make &Documentation View")           21 pmvevie "{doc}" x
+bind set popup pmview message N_("Make Ske&leton View")                22 pmvnsk
+bind set popup pmview message N_("Make Othe&r View...")                23 pmveoth x
+
+;******************************* WINDOWS MENU *******************************
+
+macbegin pmwmenu no-execute
+terminal input a "Menu" menu
+if x%a != x telltool user menu %a
+macend
+
+macbegin pmwedpa no-execute
+terminal input a X layerpatterns
+redraw
+macend
+
+menu popup pmwcol size 5
+bind set popup pmwcol message N_("&Edit Colors...")           0 color mix
+bind set popup pmwcol message N_("&Highlight Layer...")       1 terminal input a "x" highlayer
+bind set popup pmwcol message N_("&Restore Default Colors")   2 color default
+bind set popup pmwcol message N_("&Black Background Colors")  3 color black-background
+bind set popup pmwcol message N_("&White Background Colors")  4 color white-background
+
+macbegin pmw3set no-execute
+bind set popup pmw3d message N_("&Rotate View Point\<")      3 pmw3set Rotate 3 rotate
+bind set popup pmw3d message N_("&Zoom View Point\<")        4 pmw3set Zoom 4 zoom
+bind set popup pmw3d message N_("&Pan View Point\<")         5 pmw3set Pan 5 pan
+bind set popup pmw3d message N_("&Twist View Point\<")       6 pmw3set Twist 6 twist
+var set a ">&"
+var |   a %1
+var |   a " View Point\"
+var |   a "<"
+bind set popup pmw3d message %a %2 pmw3set %1 %2 %3
+window 3-dimensional %3
+macend
+
+menu popup pmw3d size 9
+bind set popup pmw3d message N_("View in &3 Dimensions")      0 window 3-dimensional begin
+bind set popup pmw3d message N_("View in &2 Dimensions")      1 window 3-dimensional end
+bind set popup pmw3d                                          2 -
+bind set popup pmw3d message N_(">&Rotate View Point\r<")     3 pmw3set Rotate 3 rotate
+bind set popup pmw3d message N_("&Zoom View Point\z<")        4 pmw3set Zoom 4 zoom
+bind set popup pmw3d message N_("&Pan View Point\p<")         5 pmw3set Pan 5 pan
+bind set popup pmw3d message N_("&Twist View Point\t<")       6 pmw3set Twist 6 twist
+bind set popup pmw3d                                          7 -
+bind set popup pmw3d message N_("3D &Options...")             8 terminal input a x depth3d
+
+macbegin pmwindz no-execute
+find down-stack
+find area-define
+window highlight-displayed
+find up-stack
+macend
+
+menu popup pmwcenter size 2
+bind set popup pmwcenter message N_("&Selection")                0 window center-highlight
+bind set popup pmwcenter message N_("&Cursor")/5                 1 window cursor-centered
+
+menu popup pmwsplit size 3
+bind set popup pmwsplit message N_("&Split")                     0 window split
+bind set popup pmwsplit message N_("&Delete")                    1 window kill
+bind set popup pmwsplit message N_("Make &1 Window")             2 window 1-window
+
+menu popup pmwadj size 3
+bind set popup pmwadj message N_("Tile Horizontally")            0 window adjust horizontal-tile
+bind set popup pmwadj message N_("Tile Vertically")              1 window adjust vertical-tile
+bind set popup pmwadj message N_("Cascade")                      2 window adjust cascade
+
+var set a 4
+if $tool:user.USER_machine == Macintosh var - a 1
+menu popup pmwmsg size %a
+bind set popup pmwmsg message N_("Set &Font...")                 0 system setstatusfont
+bind set popup pmwmsg message N_("&Save Messages")               1 terminal audit on
+bind set popup pmwmsg message N_("&Clear")                       2 terminal clear
+if $tool:user.USER_machine != Macintosh bind set popup pmwmsg message N_("Save Window &Location") 3 terminal get-location
+
+macbegin pmwpset no-execute
+bind set popup pmwpan message N_("&Small\<")                    0 pmwpset Small 0 0.15
+bind set popup pmwpan message N_("&Medium\<")                   1 pmwpset Medium 1 0.3
+bind set popup pmwpan message N_("&Large\<")                    2 pmwpset Large 2 0.6
+var set a ">&"
+var |   a %1
+var |   a "\"
+var |   a "<"
+bind set popup pmwpan message %a %2 pmwpset %1 %2 %3
+var set B %3
+macend
+
+menu popup pmwpan size 3
+bind set popup pmwpan message N_("&Small\s<")                    0 pmwpset Small 0 0.15
+bind set popup pmwpan message N_(">&Medium\m<")                  1 pmwpset Medium 1 0.3
+bind set popup pmwpan message N_("&Large\l<")                    2 pmwpset Large 2 0.6
+
+menu popup pmwind size 31
+menu popup pmwind header N_("&Windows")
+; &-keys in use: "ABCDEFGH J LMNOP RSTUVWXYZ   3      "
+bind set popup pmwind message N_("&Fill Window")/9               0 window all-displayed
+bind set popup pmwind message N_("Redisplay Window")             1 redraw
+bind set popup pmwind message N_("Zoom &Out")/0                  2 window out-zoom
+bind set popup pmwind message N_("&Zoom In")/7                   3 window in-zoom
+bind set popup pmwind message N_("Focus on &Highlighted")/F      4 window highlight-displayed
+bind set popup pmwind message N_("Match Other &Window")          5 window match
+bind set popup pmwind                                            6 -
+bind set popup pmwind message N_("&Left")/4                      7 window right ^%B
+bind set popup pmwind message N_("&Right")/6                     8 window left ^%B
+bind set popup pmwind message N_("&Up")/8                        9 window down ^%B
+bind set popup pmwind message N_("&Down")/2                     10 window up ^%B
+bind set popup pmwind message N_("Panning Distance")            11 pmwpan
+bind set popup pmwind message N_("Cen&ter")                     12 pmwcenter
+bind set popup pmwind message N_("Saved &Views...")             13 terminal input a X windowview
+bind set popup pmwind                                           14 -
+bind set popup pmwind message N_("Toggle &Grid")/G              15 grid
+bind set popup pmwind message N_("Grid Option&s...")            16 terminal input a X grid
+bind set popup pmwind message N_("&Alignment Options...")       17 terminal input a X alignment
+bind set popup pmwind                                           18 -
+bind set popup pmwind message N_("&New Window")                 19 window new
+bind set popup pmwind message N_("D&elete Window")/W            20 window delete
+bind set popup pmwind message N_("Window &Partitions")          21 pmwsplit
+bind set popup pmwind message N_("Ad&just Position")            22 pmwadj
+bind set popup pmwind                                           23 -
+bind set popup pmwind message N_("Layer Visi&bility...")        24 terminal input a X visiblelayers
+bind set popup pmwind message N_("&Color Options")              25 pmwcol
+bind set popup pmwind message N_("La&yer Display Options...")   26 pmwedpa
+bind set popup pmwind message N_("Te&xt Options...")            27 terminal input a X deftext
+bind set popup pmwind message N_("&3D Display")                 28 pmw3d
+bind set popup pmwind message N_("Component Menu...")           29 pmwmenu
+bind set popup pmwind message N_("&Messages Window")            30 pmwmsg
+
+;***************************** INFO MENU *******************************
+
+macbegin pmiscc no-execute
+terminal track-cursor-coordinates
+bind set popup pminfou message N_(">Show &Cursor Coordinates<")   3 pmihcc
+macend
+
+macbegin pmihcc no-execute
+terminal not track-cursor-coordinates
+bind set popup pminfou message N_("Show &Cursor Coordinates<")    3 pmiscc
+macend
+
+macbegin pmismea no-execute
+window measure
+bind set popup pminfo message N_("Stop &Measuring Distance\")     16 pmiemea
+macend
+
+macbegin pmiemea no-execute
+window measure
+bind set popup pminfo message N_("&Measure Distance\")            16 pmismea
+macend
+
+macbegin pmilog no-execute
+terminal input a log/N_("Log file") file
+if x%a == x macdone
+terminal session playback %a
+macend
+
+menu popup pminfoa size 11
+bind set popup pminfoa message N_("&Define...")                        0 terminal input a x attributes
+bind set popup pminfoa message N_("&Enumerate...")                     1 terminal input a x enumattrs
+bind set popup pminfoa message N_("Attribute &Report...")              2 terminal input a x attreport
+bind set popup pminfoa                                                 3 -
+bind set popup pminfoa message N_("Facet &Parameters...")              4 terminal input a x attparam
+bind set popup pminfoa message N_("&Update Inheritance")               5 var reinherit
+bind set popup pminfoa message N_("Update Inheritance &All Libraries") 6 var total-reinherit
+bind set popup pminfoa                                                 7 -
+bind set popup pminfoa message N_("&See All Parameters on Node")       8 var visible-all
+bind set popup pminfoa message N_("&Hide All Parameters on Node")      9 var visible-none
+bind set popup pminfoa message N_("Default Parameter &Visibility")    10 var visible-default
+
+; DO NOT REARRANGE MENU ENTRIES WITHOUT FIXING pmiscc, pmihcc
+var set a 5
+if $tool:user.USER_machine == Macintosh var - a 1
+menu popup pminfou size %a
+bind set popup pminfou message N_("&General Options...")          0 terminal input a x genopt
+bind set popup pminfou message N_("&Quick Key Options...")        1 terminal input a x quickkey
+bind set popup pminfou message N_("&Set Paths...")                2 terminal input a "x" path
+bind set popup pminfou message N_("Show &Cursor Coordinates<")    3 pmiscc
+if %a > 4 bind set popup pminfou message N_("&Playback Log File...") 4 pmilog
+
+macbegin pmlocaloptions no-execute
+library read LOCALoptions text
+echo "Setting options for this group"
+var options save
+macend
+
+var set a 4
+if $tool:user.USER_have_suntools == 1 var + a 1
+menu popup pminfoo size %a
+bind set popup pminfoo message N_("&Save Options Now")                 0 var options save
+bind set popup pminfoo message N_("Saving Options With &Libraries...") 1 terminal input a x optionsave
+bind set popup pminfoo message N_("&Examine Saved Options...")         2 terminal input a x optionexamine
+bind set popup pminfoo message N_("&Find Options...")                  3 terminal input a x optionfind
+if $tool:user.USER_have_suntools == 1 bind set popup pminfoo message N_("Install Local Options") 4 pmlocaloptions
+
+; DO NOT REARRANGE MENU ENTRIES WITHOUT FIXING pmepol, pmepolx, pmismea, pmiemea
+var set a 19
+if $tool:user.USER_machine != Macintosh var + a 2
+menu popup pminfo size %a
+menu popup pminfo header N_("&Info")
+; &-keys in use: " BC E GHI K MNOP RSTUVW   "
+bind set popup pminfo message N_("Get &Info")/I                    0 terminal input b "getinfo" show
+bind set popup pminfo message N_("Attribute&s")                    1 pminfoa
+bind set popup pminfo                                              2 -
+bind set popup pminfo message N_("List Net&works")                 3 show networks
+bind set popup pminfo message N_("List &Connections on Network")   4 telltool network name-connections
+bind set popup pminfo message N_("List Ex&ports on Network")       5 telltool network list-hierarchical-ports
+bind set popup pminfo message N_("List Exports &below Network")    6 telltool network list-ports-below
+bind set popup pminfo message N_("List &Geometry on Network")      7 telltool network show-geometry
+bind set popup pminfo message N_("List Layer Co&verage")           8 show coverage
+bind set popup pminfo message N_("Rename &Network...")             9 terminal input a x renamenet
+bind set popup pminfo                                             10 -
+bind set popup pminfo message N_("&Help...")                      11 terminal input a EVE help
+bind set popup pminfo message N_("S&ee Manual")                   12 help manual
+bind set popup pminfo message N_("T&utorial")                     13 commandfile evetutor
+bind set popup pminfo                                             14 -
+bind set popup pminfo message N_("&Option Control")               15 pminfoo
+bind set popup pminfo message N_("&Measure Distance\M")           16 pmismea
+bind set popup pminfo message N_("Use&r Interface")               17 pminfou
+bind set popup pminfo message N_("Chec&k and Repair Libraries")   18 debug check-database
+if $tool:user.USER_machine != Macintosh bind set popup pminfo                                  19 -
+if $tool:user.USER_machine != Macintosh bind set popup pminfo message N_("Abou&t Electric...") 20 terminal input a x about
+
+;******************************* TECHNOLOGY MENU *******************************
+
+macbegin pmtdesc no-execute
+echo $technology:~.techdescript
+echo Lambda value is $technology:~.deflambda
+echo $technology:~.layercount layers, $technology:~.arcprotocount arcs, $technology:~.nodeprotocount nodes:
+show primitives
+macend
+
+macbegin pmtefreadarch no-execute
+terminal input a fpga/N_("Architecture File") file
+if x%a == x macdone
+technology tell fpga read-architecture-file %a
+macend
+
+macbegin pmtefreadprims no-execute
+terminal input a fpga/N_("Primitives File") file
+if x%a == x macdone
+technology tell fpga only-primitives-file %a
+macend
+
+macbegin pmtefseeact no-execute
+technology tell fpga display-level active
+window peek
+technology tell fpga display-level %l
+macend
+
+macbegin pmtefwdispnone no-execute
+technology tell fpga display-level empty
+var set l empty
+bind set menu message N_("Wires: None")       textsize 12p background red     2 0w pmtefwdisp
+macend
+
+macbegin pmtefwdispactive no-execute
+technology tell fpga display-level active
+var set l active
+bind set menu message N_("Wires: Active")     textsize 12p background red     2 0w pmtefwdisp
+macend
+
+macbegin pmtefwdispfull no-execute
+technology tell fpga display-level full
+var set l full
+bind set menu message N_("Wires: Full")       textsize 12p background red     2 0w pmtefwdisp
+macend
+
+menu popup pmtefwdisp size 3
+menu popup pmtefwdisp header N_("Wire Display")
+bind set popup pmtefwdisp message N_("None")            0 pmtefwdispnone
+bind set popup pmtefwdisp message N_("Active")          1 pmtefwdispactive
+bind set popup pmtefwdisp message N_("Full")            2 pmtefwdispfull
+
+macbegin pmteftdispon no-execute
+technology tell fpga display-level text on
+bind set menu message N_("Text: On")          textsize 12p background red     1 0w pmteftdisp
+macend
+
+macbegin pmteftdispoff no-execute
+technology tell fpga display-level text off
+bind set menu message N_("Text: Off")         textsize 12p background red     1 0w pmteftdisp
+macend
+
+menu popup pmteftdisp size 2
+menu popup pmteftdisp header N_("Text Display")
+bind set popup pmteftdisp message N_("On")              0 pmteftdispon
+bind set popup pmteftdisp message N_("Off")             1 pmteftdispoff
+
+macbegin pmtefeditpips no-execute
+pmonenode node
+if %b == 0 macdone
+var textedit ~.FPGA_activepips
+technology tell fpga clear-node-cache
+macend
+
+macbegin pmteset no-execute
+terminal input a N_("Change current technology") technology
+pmtenewtech %a
+macend
+
+macbegin pmteplat no-execute
+technology edit place-layer text
+var set ~.ART_message[0] N_("text") display
+var textedit ~.ART_message in-place
+find clear
+macend
+
+macbegin pmteeder no-execute
+echo N_("Must be editing a technology first")
+macend
+
+macbegin pmteedib no-execute
+var set b $library:~.libname
+terminal input a N_("Edit technology") technology
+if x%a == x macdone
+technology edit tech-to-library %a
+;if $library:~.libname != %b pmteedit
+macend
+
+macbegin pmteedic no-execute
+terminal input a x libtotech
+;if $tech:~ != %a pmteeditX
+macend
+
+macbegin pmteedin no-execute
+terminal input a N_("Primitive node to edit") edtecnode
+if x%a != x technology edit edit-node %a
+macend
+
+macbegin pmteedia no-execute
+terminal input a N_("Primitive arc to edit") edtecarc
+if x%a != x technology edit edit-arc %a
+macend
+
+macbegin pmteedil no-execute
+terminal input a N_("Layer to edit") edteclayer
+if x%a != x technology edit edit-layer %a
+macend
+
+macbegin pmtenewn no-execute
+terminal input a N_("New primitive node name") string
+if x%a != x technology edit edit-node %a
+macend
+
+macbegin pmtenewa no-execute
+terminal input a N_("New primitive arc name") string
+if x%a != x technology edit edit-arc %a
+macend
+
+macbegin pmtenewl no-execute
+terminal input a N_("New primitive layer name") string
+if x%a != x technology edit edit-layer %a
+macend
+
+macbegin pmtedelp no-execute
+if $facet:~ != "factors" killfacet $facet:~
+if $facet:~ == "factors" echo N_("No primitive to delete")
+macend
+
+macbegin pmtedoc no-execute
+terminal input a N_("Document technology") technology
+if x%a != x technology document %a
+macend
+
+macbegin pmteread no-execute
+terminal input a blib/N_("Technology-Library File") file
+if x%a == x macdone
+echo N_("Reading technology library") %a "..."
+var set b $library:~
+var set c $tech:~
+library read %a make-current
+technology use artwork
+terminal input a x libtotech
+menu size auto
+macend
+
+macbegin pmtedel no-execute
+terminal input a N_("Delete technology") technology
+if x%a != x technology kill %a
+macend
+
+menu popup pmtenew size 3
+bind set popup pmtenew message N_("New Primitive &Node...")      0 pmteeder
+bind set popup pmtenew message N_("New Primitive &Arc...")       1 pmteeder
+bind set popup pmtenew message N_("New &Layer...")               2 pmteeder
+
+menu popup pmtereo size 3
+bind set popup pmtereo message N_("Reorder Primitive &Nodes")    0 pmteeder
+bind set popup pmtereo message N_("Reorder Primitive &Arcs")     1 pmteeder
+bind set popup pmtereo message N_("Reorder &Layers")             2 pmteeder
+
+; DO NOT REARRANGE MENU ENTRIES WITHOUT FIXING pmteeditX, pmteedit
+menu popup pmtech size 27
+menu popup pmtech header N_("Tec&hnology")
+; &-keys in use: "ABCDEFGHI  LMNOP R TUVWXY "
+bind set popup pmtech message N_("C&hange Current Technology...")    0 pmteset
+bind set popup pmtech message N_("Technology &Options...")           1 terminal input a X techopt
+bind set popup pmtech message N_("Change &Units...")                 2 terminal input a "lambda" lambda
+bind set popup pmtech message N_("&Document Technology")             3 pmtedoc
+bind set popup pmtech message N_("Describe Current Technology")      4 pmtdesc
+bind set popup pmtech                                                5 -
+bind set popup pmtech message N_("Con&vert and Edit Technology...")  6 pmteedib
+bind set popup pmtech message N_("Load Technology L&ibrary")         7 pmteread
+bind set popup pmtech message N_("D&elete Technology...")            8 pmtedel
+bind set popup pmtech message N_("Rename Technology...")             9 terminal input a x renametech
+bind set popup pmtech                                               10 -
+bind set popup pmtech message N_("Edit Primitive &Node...")         11 pmteeder
+bind set popup pmtech message N_("Edit Primitive &Arc...")          12 pmteeder
+bind set popup pmtech message N_("Edit &Layer...")                  13 pmteeder
+bind set popup pmtech message N_("Edit Ne&xt Primitive")            14 pmteeder
+bind set popup pmtech message N_("Ne&w Primitive")                  15 pmtenew
+bind set popup pmtech message N_("&Reorder Primitives")             16 pmtereo
+bind set popup pmtech                                               17 -
+bind set popup pmtech message N_("Edit &Colors...")                 18 pmteeder
+bind set popup pmtech message N_("Edit Desi&gn Rules...")           19 pmteeder
+bind set popup pmtech message N_("Edit Varia&bles...")              20 pmteeder
+bind set popup pmtech message N_("Edit Librar&y Dependencies...")   21 pmteeder
+bind set popup pmtech message N_("Edit Miscellaneous In&fo")        22 pmteeder
+bind set popup pmtech message N_("Identify Pri&mitive Layers")      23 pmteeder
+bind set popup pmtech message N_("Iden&tify Ports")                 24 pmteeder
+bind set popup pmtech                                               25 -
+bind set popup pmtech message N_("Delete this &Primitive")          26 pmteeder
+
+;******************************* TOOLS MENU *******************************
+
+menu popup pmtdrc size 12
+bind set popup pmtdrc message N_("&Hierarchical Check")               0 telltool drc quick-check
+bind set popup pmtdrc message N_("Hierarchical Check &Selection")     1 telltool drc quick-select-check
+bind set popup pmtdrc message N_("Check this &Level Only")            2 telltool drc check
+bind set popup pmtdrc                                                 3 -
+bind set popup pmtdrc message N_("DRC &Options...")                   4 terminal input a x drcopt
+bind set popup pmtdrc message N_("DRC &Rules...")                     5 terminal input a x drcrules
+bind set popup pmtdrc message N_("&Clear Ignored Errors")             6 telltool drc forget-ignored-errors
+bind set popup pmtdrc                                                 7 -
+bind set popup pmtdrc message N_("Write &Dracula Deck")               8 telltool drc ecadcheck
+bind set popup pmtdrc                                                 9 -
+bind set popup pmtdrc message N_("Old Hierarchical Check")           10 telltool drc batch run
+bind set popup pmtdrc message N_("Old Hierarchical Check Selection") 11 telltool drc batch select-run
+
+menu popup pmtqstr size 2
+bind set popup pmtqstr message N_("&Weak")   0 var set ~.SIM_weak_node Weak display
+bind set popup pmtqstr message N_("&Normal") 1 var delete ~.SIM_weak_node
+
+menu popup pmtqadd size 3
+bind set popup pmtqadd message N_("&Typical") 0 telltool simulation als annotate typical
+bind set popup pmtqadd message N_("M&inimum") 1 telltool simulation als annotate minimum
+bind set popup pmtqadd message N_("M&aximum") 2 telltool simulation als annotate maximum
+
+menu popup pmtqsim size 14
+; &-keys in use: "A CD FG       OP RSTU     "
+bind set popup pmtqsim message N_("&Simulate...")                     0 telltool simulation simulate internal
+bind set popup pmtqsim message N_("Simulation &Options...")           1 terminal input a x simopt
+bind set popup pmtqsim                                                2 -
+bind set popup pmtqsim message N_("Transistor Stren&gth")             3 pmtqstr
+bind set popup pmtqsim message N_("&Annotate Delay Data (ALS)")       4 pmtqadd
+bind set popup pmtqsim message N_("&Restore Signal Display Order (ALS)") 5 telltool simulation als order restore fromlib
+bind set popup pmtqsim                                                6 -
+bind set popup pmtqsim message N_("&Down Hierarchy...")               7 telltool simulation window level set
+bind set popup pmtqsim message N_("&Up Hierarchy")                    8 telltool simulation window level up
+bind set popup pmtqsim                                                9 -
+bind set popup pmtqsim message N_("Read Vectors &from Disk")         10 telltool simulation window vector-load
+bind set popup pmtqsim message N_("Save Vectors &to Disk")           11 telltool simulation window vector-save
+bind set popup pmtqsim message N_("Save Vectors as S&PICE commands") 12 telltool simulation window vector-writespice
+bind set popup pmtqsim message N_("&Clear All Vectors")              13 telltool simulation window vector-clear
+
+macbegin pmtsigdeck no-execute
+var set a $tool:simulation.SIM_spice_state
+var and a 0100
+if %a == 0100 terminal input b spicerawout/N_("Spice Raw File") file
+if %a == 0100 macdone
+var set a $tool:simulation.SIM_spice_state
+var and a 060
+if %a == 040 terminal input b hspiceout/N_("Spice Listing File") file
+if %a != 040 terminal input b spiceout/N_("Spice Listing File") file
+macend
+
+macbegin pmtsideck no-execute
+pmtsigdeck
+if x%b != x telltool simulation spice parse-output %b
+macend
+
+macbegin pmtsvcode no-execute
+getproto node generic:Invisible-Pin
+if x$~ == x macdone
+size 0 0
+var set ~.%1^[0] %2 display 0 0 right
+var textedit ~.%1 in-place
+find clear
+macend
+
+macbegin pmtstemp no-execute
+var set a $facet:~.%1
+if %ax != x echo N_("This facet already has a template")
+if %ax != x macdone
+var set facet:~.%1 *Undefined na-va-display
+var change facet:~.%1 interior-only
+var textedit facet:~.%1 in-place
+macend
+
+macbegin pmtsmag no-execute
+var set a ~.ATTR_m
+if %ax != x var set ~.ATTR_m 1 float
+if %ax != x var change ~.ATTR_m na-va-display -1.5 -1
+macend
+
+macbegin pmtsmod no-execute
+if x$~ == x echo N_("Select something before setting a SPICE model on it")
+if x$~ == x macdone
+var set ~.SIM_spice_model SPICE-Model display
+macend
+
+menu popup pmtsvwire size 3
+bind set popup pmtsvwire message N_("&Wire")     0 var set ~.SIM_verilog_wire_type wire display
+bind set popup pmtsvwire message N_("&Trireg")   1 var set ~.SIM_verilog_wire_type trireg display
+bind set popup pmtsvwire message N_("&Default")  2 var delete ~.SIM_verilog_wire_type
+
+menu popup pmtspi size 14
+; &-keys in use: "  CD  GH   LM OP  ST      23"
+bind set popup pmtspi message N_("Write SPICE &Deck")               0 telltool simulation simulate spice
+bind set popup pmtspi message N_("SPICE &Options...")               1 terminal input a x spice
+bind set popup pmtspi message N_("Plot SPICE &Listing")             2 pmtsideck
+bind set popup pmtspi message N_("Add SPICE &Card")                 3 pmtsvcode SIM_spice_card Card
+bind set popup pmtspi message N_("Set SPICE &Model...")             4 pmtsmod
+bind set popup pmtspi message N_("Add Mag parameter")               5 pmtsmag
+bind set popup pmtspi                                               6 -
+bind set popup pmtspi message N_("Set Generic SPICE &Template")     7 pmtstemp ATTR_SPICE_template
+bind set popup pmtspi message N_("Set SPICE &2 Template")           8 pmtstemp ATTR_SPICE_template_smartspice
+bind set popup pmtspi message N_("Set SPICE &3 Template")           9 pmtstemp ATTR_SPICE_template_smartspice
+bind set popup pmtspi message N_("Set &HSPICE Template")           10 pmtstemp ATTR_SPICE_template_smartspice
+bind set popup pmtspi message N_("Set &PSPICE Template")           11 pmtstemp ATTR_SPICE_template_smartspice
+bind set popup pmtspi message N_("Set &GnuCAP Template")           12 pmtstemp ATTR_SPICE_template_smartspice
+bind set popup pmtspi message N_("Set &SmartSPICE Template")       13 pmtstemp ATTR_SPICE_template_smartspice
+
+menu popup pmtver size 6
+bind set popup pmtver message N_("Write &Verilog Deck")             0 telltool simulation simulate verilog
+bind set popup pmtver message N_("Verilo&g Options...")             1 terminal input a x verilog
+bind set popup pmtver message N_("Set Verilog &Wire")               2 pmtsvwire
+bind set popup pmtver message N_("Add Verilog &Declaration")        3 pmtsvcode VERILOG_declaration Declaration
+bind set popup pmtver message N_("Add Verilog &Code")               4 pmtsvcode VERILOG_code Code
+bind set popup pmtver message N_("Set Verilog &Template")           5 pmtstemp ATTR_verilog_template
+
+menu popup pmtsim size 14
+; &-keys in use: "A   EF HI KLMN   R T    Y "
+bind set popup pmtsim message N_("FastHenr&y Arc Info...")          0 terminal input a x fasthenryarc
+bind set popup pmtsim message N_("Write &FastHenry Deck")           1 telltool simulation simulate fasthenry
+bind set popup pmtsim message N_("Fast&Henry Options...")           2 terminal input a x fasthenry
+bind set popup pmtsim                                               3 -
+bind set popup pmtsim message N_("Write IRSIM Dec&k")               4 telltool simulation simulate irsim
+bind set popup pmtsim message N_("Write &ESIM Deck")                5 telltool simulation simulate esim
+bind set popup pmtsim message N_("Write &RSIM Deck")                6 telltool simulation simulate rsim
+bind set popup pmtsim message N_("Write R&NL Deck")                 7 telltool simulation simulate rnl
+bind set popup pmtsim message N_("Write COS&MOS Deck")              8 telltool simulation simulate cosmos
+bind set popup pmtsim message N_("Write MOSS&IM Deck")              9 telltool simulation simulate mossim
+bind set popup pmtsim                                              10 -
+bind set popup pmtsim message N_("Write &TEGAS Deck")              11 telltool simulation simulate texsim
+bind set popup pmtsim message N_("Write SI&LOS Deck")              12 telltool simulation simulate silos
+bind set popup pmtsim message N_("Write P&AL Deck")                13 telltool simulation simulate abel-pal
+
+menu popup pmterc size 5
+bind set popup pmterc message N_("Analyze &Wells")                  0 telltool erc well-check
+bind set popup pmterc message N_("Well Check &Options...")          1 terminal input a x ercopt
+bind set popup pmterc                                               2 -
+bind set popup pmterc message N_("&Antenna-Rules Check")            3 telltool erc antenna-rules
+bind set popup pmterc message N_("Antenna-Rules O&ptions...")       4 terminal input a x ercantennaopt
+
+var set a 11
+if $tool:user.USER_have_suntools == 1 var + a 1
+menu popup pmtnet size %a
+; &-keys in use: "A   E        NOP R  UVW   "
+bind set popup pmtnet message N_("Show &Network")/K                 0 telltool network highlight
+bind set popup pmtnet                                               1 -
+bind set popup pmtnet message N_("NCC Control and &Options...")     2 terminal input a x nccopt
+bind set popup pmtnet                                               3 -
+bind set popup pmtnet message N_("Node &Extract")                   4 telltool network extract
+bind set popup pmtnet                                               5 -
+bind set popup pmtnet message N_("Net&work Options...")             6 terminal input a x netopt
+bind set popup pmtnet message N_("Show &Power and Ground")          7 telltool network power-and-ground identify
+bind set popup pmtnet message N_("&Validate Power and Ground")      8 telltool network power-and-ground validate
+bind set popup pmtnet message N_("&Rip Bus Signals")                9 telltool network rip-bus
+bind set popup pmtnet message N_("Redo Network N&umbering")        10 telltool network total-re-number
+if $tool:user.USER_have_suntools == 1 bind set popup pmtnet message N_("&Analyze Facet Network...") 11 telltool network compare analyze-facet
+
+macbegin pmelemake no-execute
+var set a $lib:leparts
+if %ax == x library read leparts.txt text
+getproto node leparts:%1
+macend
+
+var set a 10
+if $tool:user.USER_have_suntools == 1 var + a 5
+menu popup pmtle size %a
+bind set popup pmtle message N_("Analyze &Facet")                   0 telltool logeffort analyze-facet
+bind set popup pmtle message N_("Analyze &Path")                    1 telltool logeffort analyze-path
+bind set popup pmtle                                                2 -
+bind set popup pmtle message N_("New Arc Load")                     3 pmelemake LogicalEffortLoad
+bind set popup pmtle message N_("Set &Node Effort...")              4 telltool logeffort set-node-effort
+bind set popup pmtle message N_("Logical Effort &Options...")       5 telltool logeffort set-options
+bind set popup pmtle                                                6 -
+bind set popup pmtle message N_("&Estimate Delays")                 7 telltool logeffort estimate-delay
+bind set popup pmtle message N_("Show Network &Loads")              8 telltool logeffort show-loads
+bind set popup pmtle message N_("Analyze Networ&k")                 9 telltool logeffort analyze-network
+if $tool:user.USER_have_suntools == 1 bind set popup pmtle         10 -
+if $tool:user.USER_have_suntools == 1 bind set popup pmtle message N_("Describe LE Node") 11 telltool logeffort describe-le-node
+if $tool:user.USER_have_suntools == 1 bind set popup pmtle message N_("Back-annotate LE wires") 12 telltool logeffort backannotate-lewires
+if $tool:user.USER_have_suntools == 1 bind set popup pmtle         13 -
+if $tool:user.USER_have_suntools == 1 bind set popup pmtle message N_("Update GasP Layout Sizes") 14 telltool logeffort special-function
+
+macbegin pmtroutas no-execute
+telltool routing auto-stitch enable
+bind set popup pmtrout message N_("Disable &Auto-Stitching")        0 pmtroute
+bind set popup pmtrout message N_("Enable &Mimic-Stitching")        3 pmtroutms
+macend
+
+macbegin pmtroutms no-execute
+telltool routing mimic-stitch enable
+bind set popup pmtrout message N_("Enable &Auto-Stitching")         0 pmtroutas
+bind set popup pmtrout message N_("Disable &Mimic-Stitching")       3 pmtroute
+macend
+
+macbegin pmtroute no-execute
+telltool routing no-stitch
+bind set popup pmtrout message N_("Enable &Auto-Stitching")         0 pmtroutas
+bind set popup pmtrout message N_("Enable &Mimic-Stitching")        3 pmtroutms
+macend
+
+; DO NOT REARRANGE MENU ENTRIES WITHOUT FIXING pmtroutas, pmtroutms, pmtroute
+menu popup pmtrout size 17
+; &-keys in use: "A C    H    MNOP RSTU W  Z"
+bind set popup pmtrout message N_("Enable &Auto-Stitching")         0 pmtroutas
+bind set popup pmtrout message N_("Auto-Stitch &Highlighted Now")   1 telltool routing auto-stitch highlighted-stitch-now
+bind set popup pmtrout                                              2 -
+bind set popup pmtrout message N_("Enable &Mimic-Stitching")        3 pmtroutms
+bind set popup pmtrout message N_("Mimic-Stitch &Now")              4 telltool routing mimic-stitch do-now
+bind set popup pmtrout                                              5 -
+bind set popup pmtrout message N_("Maze-Route &Selected")           6 telltool routing maze-route route selected
+bind set popup pmtrout message N_("Ma&ze-Route Facet")              7 telltool routing maze-route route cell
+bind set popup pmtrout                                              8 -
+bind set popup pmtrout message N_("&River-Route")                   9 telltool routing river-route
+bind set popup pmtrout                                             10 -
+bind set popup pmtrout message N_("Routing &Options...")           11 terminal input a x routeopt
+bind set popup pmtrout                                             12 -
+bind set popup pmtrout message N_("&Unroute")                      13 telltool routing unroute
+bind set popup pmtrout message N_("Get Unrouted &Wire")            14 pmgetproto arc generic:unrouted
+bind set popup pmtrout message N_("&Copy Routing Topology")        15 telltool routing copy-topology
+bind set popup pmtrout message N_("Pas&te Routing Topology")       16 telltool routing paste-topology
+
+macbegin pmtplap no-execute
+terminal input a arrfile/N_("Pad Array File") file
+if x%a == x macdone
+array file %a
+macend
+
+macbegin pmtplan no-execute
+terminal input a platab/N_("nMOS PLA Personality File") file
+if x%a == x macdone
+telltool pla nmos file %a
+pmtesetup nmos
+ontool pla
+macend
+
+macbegin pmtplac no-execute
+echo N_("Reading CMOS PLA library...")
+library read %1.txt text make-current
+var and library:%1.userbits 073
+pmtesetup %2
+telltool pla cmos generate-pla
+macend
+
+menu popup pmtpla size 3
+bind set popup pmtpla message N_("&Pad Frame")                 0 pmtplap
+bind set popup pmtpla message N_("&nMOS PLA")                  1 pmtplan
+bind set popup pmtpla message N_("MOSIS &CMOS PLA")            2 pmtplac pla_mocmos mocmos
+
+macbegin pmtvcf no-execute
+telltool vhdl-compiler output-format %1
+ontool vhdl-compiler
+macend
+
+macbegin pmtvhbl no-execute
+terminal input a N_("Behavioral Library") library
+if x%a != x telltool vhdl-compiler library %a
+macend
+
+menu popup pmtvhdl size 8
+bind set popup pmtvhdl message N_("Compile for Silicon &Compiler")  0 pmtvcf quisc
+bind set popup pmtvhdl message N_("Compile for &Simulator")         1 pmtvcf als
+bind set popup pmtvhdl message N_("Compile for R&NL")               2 pmtvcf netlisp
+bind set popup pmtvhdl message N_("Compile for &RSIM")              3 pmtvcf rsim
+bind set popup pmtvhdl message N_("Compile for SI&LOS")             4 pmtvcf silos
+bind set popup pmtvhdl                                              5 -
+bind set popup pmtvhdl message N_("VHDL &Options...")               6 terminal input a x vhdlopt
+bind set popup pmtvhdl message N_("Select &Behavioral Library...")  7 pmtvhbl
+
+macbegin pmtscmocs no-execute
+echo N_("Reading MOSIS CMOS library... (please wait)")
+library read sclib.txt text
+telltool silicon-compiler library use sclib
+pmtesetup mocmos
+macend
+
+macbegin pmtscnl no-execute
+telltool silicon-compiler delete
+telltool silicon-compiler compile
+macend
+
+macbegin pmtscpla no-execute
+telltool silicon-compiler pull
+telltool silicon-compiler place
+macend
+
+macbegin pmtscmake no-execute
+offtool drc
+telltool silicon-compiler make
+macend
+
+menu popup pmtsc size 9
+bind set popup pmtsc message N_("Read &MOSIS CMOS Library")         0 pmtscmocs
+bind set popup pmtsc                                                1 -
+bind set popup pmtsc message N_("Silicon Compiler &Options...")     2 terminal input a X silcomp 
+bind set popup pmtsc message N_("&Get Network for Current Facet")   3 pmtscnl
+bind set popup pmtsc message N_("Do &Placement")                    4 pmtscpla
+bind set popup pmtsc message N_("Do &Routing")                      5 telltool silicon-compiler route
+bind set popup pmtsc message N_("Make &Electric Layout")            6 pmtscmake
+bind set popup pmtsc                                                7 -
+bind set popup pmtsc message N_("&Issue Special Instructions...")   8 ontool silicon-compiler
+
+menu popup pmtcomp size 4
+bind set popup pmtcomp message N_("Do &Compaction")                 0 ontool compaction
+bind set popup pmtcomp message N_("Compact &Horizontally")          1 telltool compaction check horizontal
+bind set popup pmtcomp message N_("Compact &Vertically")            2 telltool compaction check vertical
+bind set popup pmtcomp message N_("Compaction &Options...")         3 terminal input a x compopt
+
+var set a 3
+if $tool:user.USER_have_java == 1 var + a 1
+menu popup pmtlang size %a
+if $tool:user.USER_have_tcl  == 1 bind set popup pmtlang message N_("&TCL...")          0 interpret tcl
+if $tool:user.USER_have_tcl  != 1 bind set popup pmtlang message N_("No &TCL")          0 echo N_("TCL not installed")
+if $tool:user.USER_have_lisp == 1 bind set popup pmtlang message N_("&LISP...")         1 interpret lisp
+if $tool:user.USER_have_lisp != 1 bind set popup pmtlang message N_("No &LISP")         1 echo N_("LISP not installed")
+if $tool:user.USER_have_java == 1 bind set popup pmtlang message N_("&Java...")         2 interpret java
+if $tool:user.USER_have_java != 1 bind set popup pmtlang message N_("No &Java")         2 echo N_("Java not installed")
+if $tool:user.USER_have_java == 1 bind set popup pmtlang message N_("Java &Options...") 3 terminal input a x javaopt
+
+menu popup pmtools size 17
+menu popup pmtools header N_("&Tools")
+; &-keys in use: " BCDE GHI  LMNOP RST V    "
+bind set popup pmtools message N_("&DRC")                           0 pmtdrc
+bind set popup pmtools message N_("Simulation (&Built-in)")         1 pmtqsim
+bind set popup pmtools message N_("Simulation (&SPICE)")            2 pmtspi
+bind set popup pmtools message N_("Simulation (&Verilog)")          3 pmtver
+bind set popup pmtools message N_("Simulation (&Others)")           4 pmtsim
+bind set popup pmtools message N_("&Electrical Rules")              5 pmterc
+bind set popup pmtools message N_("&Network")                       6 pmtnet
+bind set popup pmtools message N_("&Logical Effort")                7 pmtle
+bind set popup pmtools                                              8 -
+bind set popup pmtools message N_("&Routing")                       9 pmtrout
+bind set popup pmtools message N_("&Generation")                   10 pmtpla
+bind set popup pmtools message N_("V&HDL Compiler")                11 pmtvhdl
+bind set popup pmtools message N_("Silicon Co&mpiler")             12 pmtsc
+bind set popup pmtools message N_("&Compaction")                   13 pmtcomp
+bind set popup pmtools                                             14 -
+bind set popup pmtools message N_("List &Tools")                   15 show tools
+bind set popup pmtools message N_("Language Inter&preter")         16 pmtlang
+
+;******************************* ALL MENUS *******************************
+
+menu setmenubar pmfile pmedit pmfacets pmarc pmport pmview pmwind pminfo pmtech pmtools
+bind not verbose
+terminal only-informative-messages
+terminal not lock-keys-on-error
+terminal not use-electric-commands
+terminal display-dialogs
+terminal not permanent-menu-highlighting
+telltool io verbose graphical
+window status-bar current-node temporary
+window status-bar delete angle
+technology tell schematic disable-differential-ports
+var set a $view:schematic-page-1
+if x%a == x view new schematic-page-1 p1
+bind set key ^010 erase
+bind set key ^0177 erase
+bind set key > show error next
+bind set key < show error last
+menu left size 1 20
+bind set menu 0 0w getproto
+bind set menu 1 0w getproto
+bind set menu 2 0w getproto
+bind set menu 3 0w getproto
+bind set menu 4 0w getproto
+bind set menu 5 0w getproto
+bind set menu 6 0w getproto
+bind set menu 7 0w getproto
+bind set menu 8 0w getproto
+bind set menu 9 0w getproto
+bind set menu 10 0w getproto
+bind set menu 11 0w getproto
+bind set menu 12 0w getproto
+bind set menu 13 0w getproto
+bind set menu 14 0w getproto
+bind set menu 15 0w getproto
+bind set menu 16 0w getproto
+bind set menu 17 0w getproto
+bind set menu 18 0w getproto
+bind set menu 19 0w getproto
+var options ignore
+var set a "mocmos"
+if $library:~.firstnodeproto != ***NONODEPROTO*** var set a $~t
+if %a == generic pmtesetup mocmos
+pmtesetup %a
+ontool routing
+var set g "standard"
+var set d "more sensibly"
+var set e "sensibly"
+var set l ""
+bind set button %S find port extra-info interactive
+bind set button %T find port comp-interactive
+bind set button %A find port extra-info more interactive
+bind set button %L find port more comp-interactive
+bind set button %P find port extra-info special interactive
+bind set button %O find port special comp-interactive
+bind set button %N find port extra-info special more interactive
+bind set button %X find port special more comp-interactive
+bind set button %I terminal input b "getinfo" showdetail
+bind set button %C create join-angle
+bind set button %R find area-define
+bind set button %Z pmwindz
+bind set button %W create angle
